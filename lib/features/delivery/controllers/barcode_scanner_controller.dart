@@ -1,0 +1,429 @@
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import '../../../core/routes/app_routes.dart';
+import '../../../core/themes/app_colors.dart';
+import '../../../core/utils/snackbar_utils.dart';
+import '../../../core/constants/network_paths.dart';
+
+class BarcodeScannerController extends GetxController {
+  // Scanner state management
+  final RxBool isScanning = false.obs;
+  final RxBool isCameraInitialized = false.obs;
+  final RxString scannedBarcode = ''.obs;
+  final RxString scannerStatus = 'ready_to_scan'.tr.obs;
+
+  // Sample tracking
+  final RxList<String> scannedSamples = <String>[].obs;
+  final RxInt totalSamples = 0.obs;
+  final RxInt scannedCount = 0.obs;
+
+  // UI state
+  final RxBool isProcessing = false.obs;
+
+  // Doctor and visit information passed from previous screen
+  final RxString doctorId = ''.obs;
+  final RxString doctorName = ''.obs;
+  final RxString visitId = ''.obs;
+  final RxString appointmentId = ''.obs;
+  final RxBool isDropLocationMode = false.obs;
+  bool isExtraPickup = false; // Flag to indicate if this is an extra pickup
+  dynamic extraPickupId; // Extra pickup ID for completing extra pickups
+
+  @override
+  void onInit() {
+    super.onInit();
+    _initializeScanner();
+    _loadVisitData();
+  }
+
+  @override
+  void onReady() {
+    super.onReady();
+    startScanning();
+  }
+
+  @override
+  void onClose() {
+    stopScanning();
+    super.onClose();
+  }
+
+  /// Initialize scanner with mock data
+  void _initializeScanner() {
+    // Simulate camera initialization
+    Future.delayed(const Duration(seconds: 2), () {
+      isCameraInitialized.value = true;
+      scannerStatus.value = 'camera_ready_point_at_barcode'.tr;
+    });
+  }
+
+  /// Load visit data from arguments
+  void _loadVisitData() {
+    final args = Get.arguments as Map<String, dynamic>?;
+    if (args != null) {
+      doctorId.value = args['doctorId'] ?? '';
+      doctorName.value = args['doctorName'] ?? '';
+      visitId.value = args['visitId'] ?? '';
+      appointmentId.value = args['appointmentId'] ?? '';
+      totalSamples.value = args['totalSamples'] ?? 5; // Mock total samples
+      isDropLocationMode.value = args['isDropLocation'] ?? false;
+      isExtraPickup = args['isExtraPickup'] ?? false; // Load extra pickup flag
+      extraPickupId = args['extraPickupId']; // Load extra pickup ID
+      print('📱 BarcodeScannerController._loadVisitData:');
+      print('   doctorId: ${doctorId.value}');
+      print('   isExtraPickup: $isExtraPickup');
+      print('   extraPickupId: $extraPickupId');
+      print('   ExtraTour should be: ${isExtraPickup ? 1 : 0}');
+
+      // Call appointment start API
+      if (appointmentId.value.isNotEmpty && !isDropLocationMode.value) {
+        _callAppointmentStartAPI();
+      }
+    } else {
+      // Mock data for testing
+      doctorId.value = 'DR001';
+      doctorName.value = 'Dr. John Smith';
+      visitId.value = 'V001';
+      totalSamples.value = 5;
+      isDropLocationMode.value = false;
+      isExtraPickup = false;
+      print('📱 BarcodeScannerController._loadVisitData: USING MOCK DATA');
+    }
+  }
+
+  /// Call appointment start API
+  Future<void> _callAppointmentStartAPI() async {
+    try {
+      final url = Uri.parse(
+        '${NetworkPaths.baseUrl}${NetworkPaths.appointmentStart(appointmentId.value)}',
+      );
+
+      // Format date as YYYY-MM-DD
+      final now = DateTime.now();
+      final formattedDate =
+          '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+
+      final body = jsonEncode({'date': formattedDate});
+
+      print('📤 appointmentStart URL: $url');
+      print('📤 appointmentStart Body: $body');
+
+      // Backend expects POST request with date in body
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: body,
+      );
+      print('📥 appointmentStart Response: ${response.statusCode}');
+      print('📥 appointmentStart Response Body: ${response.body}');
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        print('✅ Appointment start API called successfully');
+      } else {
+        print('⚠️ Appointment start API failed: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('❌ Error calling appointment start API: $e');
+    }
+  }
+
+  /// Start barcode scanning
+  void startScanning() {
+    if (!isCameraInitialized.value) return;
+
+    isScanning.value = true;
+    scannerStatus.value = 'scanning_point_camera_at_barcode'.tr;
+  }
+
+  /// Stop barcode scanning
+  void stopScanning() {
+    isScanning.value = false;
+    scannerStatus.value = 'scanner_stopped'.tr;
+  }
+
+  /// Process scanned barcode after confirmation
+  void _addSample(String barcode) {
+    if (barcode.isEmpty) return;
+
+    scannedBarcode.value = barcode;
+
+    // Add to scanned samples
+    scannedSamples.add(barcode);
+    scannedCount.value = scannedSamples.length;
+
+    // Update status
+    scannerStatus.value = 'sample_scanned_success'.trParams({'id': barcode});
+
+    // Show success feedback
+    _showScanSuccessDialog(barcode);
+
+    // Continue scanning - user will manually click Next when done
+  }
+
+  /// Show confirmation dialog for a scanned barcode
+  Future<void> onBarcodeDetected(String barcode) async {
+    if (barcode.isEmpty) return;
+
+    // Prevent multiple dialogs
+    if (isProcessing.value) return;
+    isProcessing.value = true;
+
+    // Log scan time
+    final scanTime = DateTime.now().toIso8601String();
+    print('📷 Barcode Scanned at: $scanTime');
+    print('🔖 Barcode: $barcode');
+    print('📍 Mode: ${isDropLocationMode.value ? "Drop Location" : "Pickup"}');
+
+    // TODO: Send scan time to backend when API is ready
+    // await _sendScanTimeToBackend(barcode, scanTime, isDropLocationMode.value ? 'drop_location' : 'pickup');
+
+    // Drop location mode is now handled in the scanner screen itself
+    // This is only for pickup mode
+    if (isDropLocationMode.value) {
+      print('⚠️ Drop location mode - should be handled in scanner screen');
+      isProcessing.value = false;
+      return;
+    }
+
+    if (scannedSamples.contains(barcode)) {
+      _showDuplicateScanDialog(barcode);
+      isProcessing.value = false;
+      return;
+    }
+
+    Get.dialog(
+      AlertDialog(
+        title: Text('barcode_scanned'.tr),
+        content: Text('add_sample_question'.trParams({'id': barcode})),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Get.back();
+              isProcessing.value = false;
+            },
+            child: Text('cancel'.tr),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Get.back();
+              _addSample(barcode);
+              isProcessing.value = false;
+            },
+            child: Text('add'.tr),
+          ),
+        ],
+      ),
+      barrierDismissible: false,
+    );
+  }
+
+  /// Simulate barcode scan for testing
+  void simulateScan() {
+    if (isProcessing.value) return;
+
+    final mockBarcodes = [
+      'SAMPLE001',
+      'SAMPLE002',
+      'SAMPLE003',
+      'SAMPLE004',
+      'SAMPLE005',
+    ];
+
+    final nextBarcode = mockBarcodes[scannedCount.value % mockBarcodes.length];
+    // Simulate the full flow for testing
+    onBarcodeDetected(nextBarcode);
+  }
+
+  /// Handle manual barcode entry
+  void onManualEntrySubmitted(String barcode) {
+    if (barcode.trim().isEmpty) {
+      SnackbarUtils.showError(
+        title: 'error'.tr,
+        message: 'please_enter_valid_barcode'.tr,
+      );
+      return;
+    }
+
+    final trimmedBarcode = barcode.trim();
+    if (scannedSamples.contains(trimmedBarcode)) {
+      _showDuplicateScanDialog(trimmedBarcode);
+      return;
+    }
+
+    _addSample(trimmedBarcode);
+  }
+
+  /// Toggle manual entry mode
+  void toggleManualEntry() {
+    _showManualEntryDialog();
+  }
+
+  /// Show manual entry dialog with proper keyboard handling
+  void _showManualEntryDialog() {
+    final TextEditingController textController = TextEditingController();
+
+    Get.dialog(
+      AlertDialog(
+        title: Text('enter_barcode_manually'.tr),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'please_enter_the_barcode_number'.tr,
+                style: const TextStyle(fontSize: 14),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: textController,
+                autofocus: true,
+                keyboardType: TextInputType.text,
+                textCapitalization: TextCapitalization.characters,
+                decoration: InputDecoration(
+                  hintText: 'enter_barcode_number'.tr,
+                  border: const OutlineInputBorder(),
+                  focusedBorder: const OutlineInputBorder(
+                    borderSide: BorderSide(color: AppColors.primary),
+                  ),
+                  prefixIcon: const Icon(Icons.qr_code),
+                ),
+                textAlign: TextAlign.center,
+                onSubmitted: (value) {
+                  Navigator.of(Get.overlayContext!).pop();
+                  if (value.trim().isNotEmpty) {
+                    onManualEntrySubmitted(value.trim());
+                  }
+                },
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(Get.overlayContext!).pop(),
+            child: Text('cancel'.tr),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(Get.overlayContext!).pop();
+              final barcode = textController.text.trim();
+              if (barcode.isNotEmpty) {
+                onManualEntrySubmitted(barcode);
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: AppColors.textOnPrimary,
+            ),
+            child: Text('submit'.tr),
+          ),
+        ],
+      ),
+      barrierDismissible: true,
+    );
+  }
+
+  /// Remove scanned sample
+  void removeSample(String barcode) {
+    scannedSamples.remove(barcode);
+    scannedCount.value = scannedSamples.length;
+    scannerStatus.value = 'sample_removed'.trParams({'id': barcode});
+  }
+
+  /// Navigate to pickup confirmation
+  void proceedToConfirmation() {
+    if (scannedCount.value == 0) {
+      SnackbarUtils.showWarning(
+        title: 'no_samples'.tr,
+        message: 'please_scan_at_least_one_sample'.tr,
+      );
+      return;
+    }
+
+    if (isDropLocationMode.value) {
+      // For drop location, go to location code screen
+      Get.offNamed(
+        AppRoutes.locationCode,
+        arguments: {
+          'qrCode': scannedSamples.isNotEmpty ? scannedSamples.first : '',
+          'scannedSamples': scannedSamples.toList(),
+        },
+      );
+    } else {
+      // For pickup, go to confirmation
+      if (doctorId.value.isEmpty) {
+        print(
+          '❌ ERROR: doctorId is missing before navigating to pickup confirmation!',
+        );
+        SnackbarUtils.showError(
+          title: 'Error',
+          message: 'Doctor ID missing. Cannot proceed to confirmation.',
+        );
+        return;
+      }
+      print(
+        'Navigating to pickup confirmation with doctorId: [32m${doctorId.value}[0m',
+      );
+      Get.toNamed(
+        AppRoutes.pickupConfirmation,
+        arguments: {
+          'doctorId': doctorId.value,
+          'doctorName': doctorName.value,
+          'visitId': visitId.value,
+          'appointmentId': appointmentId.value,
+          'scannedSamples': scannedSamples.toList(),
+          'totalSamples': totalSamples.value,
+          'isExtraPickup': isExtraPickup, // Pass extra pickup flag
+          'extraPickupId': extraPickupId, // Pass extra pickup ID
+        },
+      );
+    }
+  }
+
+  /// Go back to previous screen
+  void goBack() {
+    // Stop scanning and cleanup
+    stopScanning();
+    isProcessing.value = false;
+    Get.back();
+  }
+
+  /// Show duplicate scan dialog
+  void _showDuplicateScanDialog(String barcode) {
+    Get.dialog(
+      AlertDialog(
+        title: Text('duplicate_scan'.tr),
+        content: Text('already_scanned_sample'.trParams({'id': barcode})),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(Get.overlayContext!).pop(),
+            child: Text('ok'.tr),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Show scan success dialog
+  void _showScanSuccessDialog(String barcode) {
+    SnackbarUtils.showSuccess(
+      title: 'success'.tr,
+      message: 'sample_scanned_success'.trParams({'id': barcode}),
+      duration: const Duration(seconds: 2),
+    );
+  }
+
+  /// Get progress percentage
+  double get progressPercentage {
+    if (totalSamples.value == 0) return 0.0;
+    return scannedCount.value / totalSamples.value;
+  }
+
+  /// Get progress text
+  String progressText({required bool isDropLocation}) {
+    // Show only scanned count for both modes
+    return '${'scanned'.tr}: ${scannedCount.value}';
+  }
+}
