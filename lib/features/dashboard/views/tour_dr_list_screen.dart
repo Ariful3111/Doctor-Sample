@@ -89,8 +89,8 @@ class _TourDrListScreenState extends State<TourDrListScreen> {
       }
 
       if (shouldExitSilent) {
-        _tourState.deleteTourTime();
-        _tourState.endTour();
+        await _tourState.deleteTourTime();
+        await _tourState.endTour();
         // Don't reset _exiting here, do it in finally or before async gap if needed
         // But since we are popping, it's fine.
         // Actually, we need to set _canPop = true.
@@ -98,7 +98,13 @@ class _TourDrListScreenState extends State<TourDrListScreen> {
         if (mounted) {
           setState(() => _canPop = true);
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted) Get.back();
+            if (!mounted) return;
+            final navigator = Get.key.currentState;
+            if (navigator != null && navigator.canPop()) {
+              navigator.pop();
+              return;
+            }
+            Navigator.of(context).maybePop();
           });
         }
         return;
@@ -121,12 +127,24 @@ class _TourDrListScreenState extends State<TourDrListScreen> {
           onConfirm: () {
             _tourState.deleteTourTime();
             _tourState.endTour();
-            Get.offAllNamed(AppRoutes.todaysTask);
+            final navigator = Get.key.currentState;
+            if (navigator != null) {
+              navigator.pushNamedAndRemoveUntil(
+                AppRoutes.todaysTask,
+                (route) => false,
+              );
+            }
           },
           onSilentExit: () {
             _tourState.deleteTourTime();
             _tourState.endTour();
-            Get.offAllNamed(AppRoutes.todaysTask);
+            final navigator = Get.key.currentState;
+            if (navigator != null) {
+              navigator.pushNamedAndRemoveUntil(
+                AppRoutes.todaysTask,
+                (route) => false,
+              );
+            }
           },
         ),
         barrierDismissible: false,

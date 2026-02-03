@@ -15,87 +15,78 @@ class DrDetailsScreen extends StatelessWidget {
     final controller = Get.find<DrDetailsController>();
     final isTablet = MediaQuery.of(context).size.shortestSide >= 600;
 
-    return PopScope(
-      canPop: true,
-      onPopInvokedWithResult: (didPop, result) {
-        if (didPop) {
-          controller.goBack();
-        }
-      },
-      child: Scaffold(
-        backgroundColor: AppColors.surface,
-        appBar: AppBar(
-          backgroundColor: AppColors.primary,
-          elevation: 0,
-          toolbarHeight: 56.0,
-          centerTitle: true,
-          leading: IconButton(
-            icon: Icon(Icons.arrow_back, color: Colors.white, size: 24.0),
-            onPressed: controller.goBack,
+    return Scaffold(
+      backgroundColor: AppColors.surface,
+      appBar: AppBar(
+        backgroundColor: AppColors.primary,
+        elevation: 0,
+        toolbarHeight: 56.0,
+        centerTitle: true,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: Colors.white, size: 24.0),
+          onPressed: controller.goBack,
+        ),
+        title: Text(
+          controller.doctorName.value,
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: isTablet ? 14.sp : 20.sp,
+            fontWeight: FontWeight.w600,
           ),
-          title: Text(
-            controller.doctorName.value,
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: isTablet ? 14.sp : 20.sp,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          actions: [
-            GetX<NotificationsController>(
-              init: Get.find<NotificationsController>(),
-              builder: (controller) {
-                final pendingCount = controller.pendingPickups.length;
-                final isTablet =
-                    MediaQuery.of(context).size.shortestSide >= 600;
-                return Stack(
-                  children: [
-                    IconButton(
-                      onPressed: () {
-                        Get.toNamed(AppRoutes.notifications);
-                      },
-                      icon: Icon(
-                        Icons.notifications_outlined,
-                        color: AppColors.textOnPrimary,
-                        size: isTablet ? 28.0 : 24.0,
-                      ),
+        ),
+        actions: [
+          GetX<NotificationsController>(
+            init: Get.find<NotificationsController>(),
+            builder: (controller) {
+              final pendingCount = controller.pendingPickups.length;
+              final isTablet = MediaQuery.of(context).size.shortestSide >= 600;
+              return Stack(
+                children: [
+                  IconButton(
+                    onPressed: () {
+                      Get.toNamed(AppRoutes.notifications);
+                    },
+                    icon: Icon(
+                      Icons.notifications_outlined,
+                      color: AppColors.textOnPrimary,
+                      size: isTablet ? 28.0 : 24.0,
                     ),
-                    if (pendingCount > 0)
-                      Positioned(
-                        right: isTablet ? 8 : 6,
-                        top: isTablet ? 8 : 6,
-                        child: Container(
-                          padding: EdgeInsets.all(isTablet ? 3 : 2),
-                          decoration: BoxDecoration(
-                            color: AppColors.error,
-                            shape: BoxShape.circle,
-                          ),
-                          constraints: BoxConstraints(
-                            minWidth: isTablet ? 16 : 14,
-                            minHeight: isTablet ? 16 : 14,
-                          ),
-                          child: Center(
-                            child: Text(
-                              pendingCount > 9 ? '9+' : pendingCount.toString(),
-                              style: TextStyle(
-                                color: AppColors.textOnPrimary,
-                                fontSize: isTablet ? 9 : 8,
-                                fontWeight: FontWeight.bold,
-                              ),
+                  ),
+                  if (pendingCount > 0)
+                    Positioned(
+                      right: isTablet ? 8 : 6,
+                      top: isTablet ? 8 : 6,
+                      child: Container(
+                        padding: EdgeInsets.all(isTablet ? 3 : 2),
+                        decoration: BoxDecoration(
+                          color: AppColors.error,
+                          shape: BoxShape.circle,
+                        ),
+                        constraints: BoxConstraints(
+                          minWidth: isTablet ? 16 : 14,
+                          minHeight: isTablet ? 16 : 14,
+                        ),
+                        child: Center(
+                          child: Text(
+                            pendingCount > 9 ? '9+' : pendingCount.toString(),
+                            style: TextStyle(
+                              color: AppColors.textOnPrimary,
+                              fontSize: isTablet ? 9 : 8,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
                         ),
                       ),
-                  ],
-                );
-              },
-            ),
-          ],
-        ),
-        body: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [DoctorInfoHeaderWidget()],
-        ),
+                    ),
+                ],
+              );
+            },
+          ),
+        ],
+      ),
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [DoctorInfoHeaderWidget()],
       ),
     );
   }

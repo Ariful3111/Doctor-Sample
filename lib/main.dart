@@ -15,10 +15,8 @@ import 'data/services/global_notification_service.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await DependencyInjection.init();
-
   final storage = Get.find<StorageService>();
   final tourStateService = Get.find<TourStateService>();
-
   final dynamic storedId = await storage.read(key: "id");
   final int userID = (storedId is int)
       ? storedId

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:get/get.dart';
 import '../../../core/themes/app_colors.dart';
 
 /// Exit Tour Warning Dialog with 2 scenarios:

@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:flutter/material.dart';
 import '../../../core/utils/snackbar_utils.dart';
 import '../../../core/routes/app_routes.dart';
 import '../../../core/services/tour_state_service.dart';
@@ -45,7 +46,16 @@ class PickupConfirmationController extends GetxController {
 
   /// Go back to barcode scanner
   void goBack() {
-    Get.back();
+    final navigator = Get.key.currentState;
+    if (navigator != null && navigator.canPop()) {
+      navigator.pop();
+      return;
+    }
+
+    final ctx = Get.context;
+    if (ctx != null && Navigator.of(ctx).canPop()) {
+      Navigator.of(ctx).pop();
+    }
   }
 
   /// Confirm pickup and proceed
@@ -116,7 +126,13 @@ class PickupConfirmationController extends GetxController {
         );
 
         // Navigate back to today's task screen
-        Get.offAllNamed(AppRoutes.todaysTask);
+        final navigator = Get.key.currentState;
+        if (navigator != null) {
+          navigator.pushNamedAndRemoveUntil(
+            AppRoutes.todaysTask,
+            (route) => false,
+          );
+        }
       } else {
         // Show pickup confirmation message
         SnackbarUtils.showSuccess(
@@ -125,7 +141,10 @@ class PickupConfirmationController extends GetxController {
         );
 
         // Navigate back to doctor list immediately (don't wait for snackbar)
-        Get.back();
+        final navigator = Get.key.currentState;
+        if (navigator != null) {
+          navigator.popUntil((route) => route.isFirst);
+        }
       }
     } finally {
       // Always set loading state to false

@@ -21,14 +21,14 @@ class PickupConfirmationButtonsWidget
                   : controller.goBack,
               style: TextButton.styleFrom(
                 foregroundColor: controller.isSubmitting.value
-                    ? AppColors.textSecondary.withOpacity(0.5)
+                    ? AppColors.textSecondary.withValues(alpha:  0.5)
                     : AppColors.textSecondary,
                 padding: EdgeInsets.symmetric(vertical: 12.h),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8.r),
                   side: BorderSide(
                     color: controller.isSubmitting.value
-                        ? AppColors.border.withOpacity(0.5)
+                        ? AppColors.border.withValues(alpha:  0.5)
                         : AppColors.border,
                   ),
                 ),

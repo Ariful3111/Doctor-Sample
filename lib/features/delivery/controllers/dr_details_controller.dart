@@ -13,6 +13,7 @@ class DrDetailsController extends GetxController {
   final RxString tourId = ''.obs; // Add tourId as member variable
   bool isExtraPickup = false; // Flag to track if this is an extra pickup
   dynamic extraPickupId; // Extra pickup ID for completing extra pickups
+  bool _isPopping = false;
 
   // Instruction data from backend
   final RxString instructionPdf = ''.obs;
@@ -148,6 +149,24 @@ class DrDetailsController extends GetxController {
   }
 
   void goBack() {
-    Navigator.of(Get.context!).pop();
+    if (_isPopping) return;
+    _isPopping = true;
+
+    Future.microtask(() {
+      try {
+        final navigator = Get.key.currentState;
+        if (navigator != null && navigator.canPop()) {
+          navigator.pop();
+          return;
+        }
+
+        final ctx = Get.context;
+        if (ctx != null && Navigator.of(ctx).canPop()) {
+          Navigator.of(ctx).pop();
+        }
+      } finally {
+        _isPopping = false;
+      }
+    });
   }
 }

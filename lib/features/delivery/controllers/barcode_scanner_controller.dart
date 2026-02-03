@@ -387,7 +387,17 @@ class BarcodeScannerController extends GetxController {
     // Stop scanning and cleanup
     stopScanning();
     isProcessing.value = false;
-    Get.back();
+
+    final navigator = Get.key.currentState;
+    if (navigator != null && navigator.canPop()) {
+      navigator.pop();
+      return;
+    }
+
+    final ctx = Get.context;
+    if (ctx != null && Navigator.of(ctx).canPop()) {
+      Navigator.of(ctx).pop();
+    }
   }
 
   /// Show duplicate scan dialog
