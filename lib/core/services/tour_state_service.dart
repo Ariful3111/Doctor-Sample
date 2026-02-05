@@ -107,24 +107,38 @@ class TourStateService extends GetxService {
   // ============================
   // TOUR END (SINGLE ENTRY)
   // ============================
-  Future<void> endTour({int? appointmentId}) async {
+  Future<void> endTour({int? appointmentId, String? tourId}) async {
     if (_ending) return;
     _ending = true;
 
     try {
-      if (activeTourId!.value.isNotEmpty) {
-        await _callEndTourAPI(
-          activeTourId!.value,
-          appointmentId: appointmentId,
-        );
+      final idFromArg = (tourId ?? '').trim();
+      final idFromState = activeTourId!.value.trim();
+      final idFromStorage = (_storage.read<dynamic>(key: _activeTourKey) ?? '')
+          .toString()
+          .trim();
+      final effectiveTourId = idFromArg.isNotEmpty
+          ? idFromArg
+          : (idFromState.isNotEmpty ? idFromState : idFromStorage);
+
+      if (effectiveTourId.isEmpty || appointmentId == null) {
+        return;
       }
-    } catch (_) {}
 
-    await _storage.write(key: _tourIntentionalExitKey, value: true);
-    tourIntentionalExit.value = true;
+      final ok = await _callEndTourAPI(
+        effectiveTourId,
+        appointmentId: appointmentId,
+      );
+      if (!ok) {
+        return;
+      }
 
-    _clearLocalState();
-    _ending = false;
+      await _storage.write(key: _tourIntentionalExitKey, value: true);
+      tourIntentionalExit.value = true;
+      _clearLocalState();
+    } finally {
+      _ending = false;
+    }
   }
 
   Future<void> clearTourState() async {
@@ -215,18 +229,29 @@ class TourStateService extends GetxService {
     );
   }
 
-  Future<void> _callEndTourAPI(String tourId, {int? appointmentId}) async {
+  Future<bool> _callEndTourAPI(
+    String tourId, {
+    required int appointmentId,
+  }) async {
     final driverId = _storage.read<int>(key: 'id');
-    if (driverId == null) return;
+    if (driverId == null) return false;
     final now = DateTime.now();
     final storedStartDate = tourStartDate.value.trim();
+    final persistedStartDate =
+        (_storage.read<String>(key: _tourStartDateKey) ?? '').trim();
+    final appointmentStartDate =
+        (_storage.read<String>(key: 'appointment_start_date') ?? '').trim();
     final effectiveStartDate = storedStartDate.isNotEmpty
         ? storedStartDate
-        : _formatDate(now);
+        : (persistedStartDate.isNotEmpty
+              ? persistedStartDate
+              : (appointmentStartDate.isNotEmpty
+                    ? appointmentStartDate
+                    : _formatDate(now)));
     final todayDate = _formatDate(now);
     final isSameDay = effectiveStartDate == todayDate;
     final endTimeToSend = isSameDay ? _formatHHmm(now) : '23:59';
-    final exitFlag = isSameDay ? 0 : 1;
+    final lateFlag = isSameDay ? 0 : 1;
 
     if (tourStartDate.value != effectiveStartDate) {
       tourStartDate.value = effectiveStartDate;
@@ -241,17 +266,19 @@ class TourStateService extends GetxService {
       'tourId': int.tryParse(tourId) ?? tourId,
       'date': effectiveStartDate,
       'endTime': endTimeToSend,
-      'exit': exitFlag,
+      'late': lateFlag,
       'appointmentId': appointmentId,
     };
     print(
-      'Ending tour: $tourId, Date: $effectiveStartDate, End Time: $endTimeToSend, Exit Flag: $exitFlag, Appointment ID: $appointmentId',
+      'Ending tour: $tourId, Date: $effectiveStartDate, End Time: $endTimeToSend, Late Flag: $lateFlag, Appointment ID: $appointmentId',
     );
-    await http.post(
+    final response = await http.post(
       Uri.parse('${NetworkPaths.baseUrl}${NetworkPaths.endTour}'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode(body),
     );
+    print('End tour response: ${response.statusCode} ${response.body}');
+    return response.statusCode == 200 || response.statusCode == 201;
   }
 
   // ============================

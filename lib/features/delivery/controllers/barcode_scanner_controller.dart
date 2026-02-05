@@ -189,7 +189,9 @@ class BarcodeScannerController extends GetxController {
       final scanTime = now.toIso8601String();
       print('📷 Barcode Scanned at: $scanTime');
       print('🔖 Barcode: $barcode');
-      print('📍 Mode: ${isDropLocationMode.value ? "Drop Location" : "Pickup"}');
+      print(
+        '📍 Mode: ${isDropLocationMode.value ? "Drop Location" : "Pickup"}',
+      );
 
       if (isDropLocationMode.value) {
         print('⚠️ Drop location mode - should be handled in scanner screen');
@@ -343,7 +345,7 @@ class BarcodeScannerController extends GetxController {
   }
 
   /// Navigate to pickup confirmation
-  void proceedToConfirmation() {
+  Future<void> proceedToConfirmation() async {
     if (scannedCount.value == 0) {
       SnackbarUtils.showWarning(
         title: 'no_samples'.tr,
@@ -353,7 +355,9 @@ class BarcodeScannerController extends GetxController {
     }
 
     if (isDropLocationMode.value) {
-      TourStateService().endTour(appointmentId: int.tryParse(appointmentId.value));
+      TourStateService().endTour(
+        appointmentId: int.tryParse(appointmentId.value),
+      );
       // For drop location, go to location code screen
       Get.offNamed(
         AppRoutes.locationCode,

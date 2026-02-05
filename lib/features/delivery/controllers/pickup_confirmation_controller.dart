@@ -114,18 +114,46 @@ class PickupConfirmationController extends GetxController {
         print('Step 2: Doctor ID empty, skipped');
       }
 
-      // Check if tour is complete
       print('Step 3: Checking if tour is complete...');
-      final isTourComplete = await tourStateService.checkAndCompleteTour();
-      final tourId = tourStateService.currentTourId;
+      final aptIdInt = int.tryParse(appointmentId.value);
+      String? tourId = tourStateService.currentTourId;
+      if (tourId == null || tourId.isEmpty) {
+        final storage = Get.find<StorageService>();
+        final storedTourId = await storage.read<dynamic>(key: 'tourId');
+        tourId = storedTourId?.toString();
+      }
+      if ((tourId == null || tourId.isEmpty) && aptIdInt != null) {
+        if (Get.isRegistered<TodaysTaskController>()) {
+          final todaysTaskController = Get.find<TodaysTaskController>();
+          if (todaysTaskController.todaySchedule.value == null) {
+            await todaysTaskController.refreshTasks();
+          }
+          final appointments =
+              todaysTaskController.todaySchedule.value?.data?.appointments ??
+              [];
+          final match = appointments.firstWhereOrNull(
+            (a) => a.appointmentId == aptIdInt,
+          );
+          tourId = match?.tour?.id?.toString();
+        }
+      }
       final remainingDoctors = await _getRemainingDoctorsCount(
         tourId: tourId,
         tourStateService: tourStateService,
       );
 
+      final shouldEndTour = remainingDoctors == 0 && aptIdInt != null;
       final shouldGoTodaysTask = remainingDoctors == 0 || tourId == null;
 
-      if (isTourComplete || shouldGoTodaysTask) {
+      if (shouldEndTour) {
+        print('🏁 Last doctor detected. Calling endTour API...');
+        await tourStateService.endTour(appointmentId: aptIdInt, tourId: tourId);
+        if (Get.isRegistered<TodaysTaskController>()) {
+          await Get.find<TodaysTaskController>().refreshTasks();
+        }
+      }
+
+      if (shouldGoTodaysTask) {
         SnackbarUtils.showSuccess(
           title: 'tour_completed'.tr,
           message: 'tour_completed_message'.tr,

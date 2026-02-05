@@ -88,11 +88,9 @@ class _TourDrListScreenState extends State<TourDrListScreen> {
           completedDoctors: completed,
           visitedDoctors: _tourState.visitedDoctorIds.length,
           samplesSubmitted: _tourState.samplesSubmittedCount.value,
-          onConfirm: () {
-            // Future.microtask(() async {
-            //   await _tourState.deleteTourTime(appointmentId: appointmentId);
-            //   await _tourState.endTour(appointmentId: appointmentId);
-            // });
+          onConfirm: () async {
+            await _tourState.deleteTourTime(appointmentId: appointmentId);
+            await _tourState.clearTourState();
             final navigator = Get.key.currentState;
             if (navigator != null) {
               navigator.pushNamedAndRemoveUntil(
@@ -101,10 +99,9 @@ class _TourDrListScreenState extends State<TourDrListScreen> {
               );
             }
           },
-          onSilentExit: () {
-            Future.microtask(() async {
-              await _tourState.deleteTourTime(appointmentId: appointmentId);
-            });
+          onSilentExit: () async {
+            await _tourState.deleteTourTime(appointmentId: appointmentId);
+            await _tourState.clearTourState();
             final navigator = Get.key.currentState;
             if (navigator != null) {
               navigator.pushNamedAndRemoveUntil(
