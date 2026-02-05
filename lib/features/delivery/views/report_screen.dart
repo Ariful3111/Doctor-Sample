@@ -25,7 +25,9 @@ class ReportScreen extends StatelessWidget {
         centerTitle: true,
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: Colors.white, size: 24.0),
-          onPressed: controller.goBack,
+          onPressed: () {
+            Navigator.pop(context);
+          },
         ),
         title: Text(
           'report'.tr,

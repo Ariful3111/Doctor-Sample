@@ -45,7 +45,7 @@ class PickupConfirmationButtonsWidget
                     : controller.confirmPickup,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: controller.isSubmitting.value
-                      ? AppColors.primary.withOpacity(0.6)
+                      ? AppColors.primary.withValues(alpha: 0.6)
                       : AppColors.primary,
                   foregroundColor: AppColors.textOnPrimary,
                   padding: EdgeInsets.symmetric(vertical: 12.h),

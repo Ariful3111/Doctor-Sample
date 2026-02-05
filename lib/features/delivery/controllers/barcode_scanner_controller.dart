@@ -1,3 +1,4 @@
+import 'package:doctor_app/core/services/tour_state_service.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
@@ -21,6 +22,9 @@ class BarcodeScannerController extends GetxController {
 
   // UI state
   final RxBool isProcessing = false.obs;
+  bool _dialogOpen = false;
+  String _lastHandledBarcode = '';
+  DateTime? _lastHandledAt;
 
   // Doctor and visit information passed from previous screen
   final RxString doctorId = ''.obs;
@@ -96,6 +100,7 @@ class BarcodeScannerController extends GetxController {
   /// Call appointment start API
   Future<void> _callAppointmentStartAPI() async {
     try {
+      // Construct URL with appointment ID
       final url = Uri.parse(
         '${NetworkPaths.baseUrl}${NetworkPaths.appointmentStart(appointmentId.value)}',
       );
@@ -163,64 +168,68 @@ class BarcodeScannerController extends GetxController {
   }
 
   /// Show confirmation dialog for a scanned barcode
-  Future<void> onBarcodeDetected(String barcode) async {
+  Future<void> onBarcodeDetected(String barcode, BuildContext context) async {
     if (barcode.isEmpty) return;
+
+    final now = DateTime.now();
+    final lastAt = _lastHandledAt;
+    if (barcode == _lastHandledBarcode &&
+        lastAt != null &&
+        now.difference(lastAt) < const Duration(milliseconds: 800)) {
+      return;
+    }
+    _lastHandledBarcode = barcode;
+    _lastHandledAt = now;
 
     // Prevent multiple dialogs
     if (isProcessing.value) return;
     isProcessing.value = true;
 
-    // Log scan time
-    final scanTime = DateTime.now().toIso8601String();
-    print('📷 Barcode Scanned at: $scanTime');
-    print('🔖 Barcode: $barcode');
-    print('📍 Mode: ${isDropLocationMode.value ? "Drop Location" : "Pickup"}');
+    try {
+      final scanTime = now.toIso8601String();
+      print('📷 Barcode Scanned at: $scanTime');
+      print('🔖 Barcode: $barcode');
+      print('📍 Mode: ${isDropLocationMode.value ? "Drop Location" : "Pickup"}');
 
-    // TODO: Send scan time to backend when API is ready
-    // await _sendScanTimeToBackend(barcode, scanTime, isDropLocationMode.value ? 'drop_location' : 'pickup');
+      if (isDropLocationMode.value) {
+        print('⚠️ Drop location mode - should be handled in scanner screen');
+        return;
+      }
 
-    // Drop location mode is now handled in the scanner screen itself
-    // This is only for pickup mode
-    if (isDropLocationMode.value) {
-      print('⚠️ Drop location mode - should be handled in scanner screen');
+      if (scannedSamples.contains(barcode)) {
+        await _showDuplicateScanDialog(context, barcode);
+        return;
+      }
+
+      final shouldAdd = await showDialog<bool>(
+        context: context,
+        barrierDismissible: false,
+        builder: (dialogContext) => AlertDialog(
+          title: Text('barcode_scanned'.tr),
+          content: Text('add_sample_question'.trParams({'id': barcode})),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: Text('cancel'.tr),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: Text('add'.tr),
+            ),
+          ],
+        ),
+      );
+
+      if (shouldAdd == true) {
+        _addSample(barcode);
+      }
+    } finally {
       isProcessing.value = false;
-      return;
     }
-
-    if (scannedSamples.contains(barcode)) {
-      _showDuplicateScanDialog(barcode);
-      isProcessing.value = false;
-      return;
-    }
-
-    Get.dialog(
-      AlertDialog(
-        title: Text('barcode_scanned'.tr),
-        content: Text('add_sample_question'.trParams({'id': barcode})),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Get.back();
-              isProcessing.value = false;
-            },
-            child: Text('cancel'.tr),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Get.back();
-              _addSample(barcode);
-              isProcessing.value = false;
-            },
-            child: Text('add'.tr),
-          ),
-        ],
-      ),
-      barrierDismissible: false,
-    );
   }
 
   /// Simulate barcode scan for testing
-  void simulateScan() {
+  void simulateScan(BuildContext context) {
     if (isProcessing.value) return;
 
     final mockBarcodes = [
@@ -233,11 +242,11 @@ class BarcodeScannerController extends GetxController {
 
     final nextBarcode = mockBarcodes[scannedCount.value % mockBarcodes.length];
     // Simulate the full flow for testing
-    onBarcodeDetected(nextBarcode);
+    onBarcodeDetected(nextBarcode, context);
   }
 
   /// Handle manual barcode entry
-  void onManualEntrySubmitted(String barcode) {
+  void onManualEntrySubmitted(String barcode, BuildContext context) {
     if (barcode.trim().isEmpty) {
       SnackbarUtils.showError(
         title: 'error'.tr,
@@ -248,7 +257,7 @@ class BarcodeScannerController extends GetxController {
 
     final trimmedBarcode = barcode.trim();
     if (scannedSamples.contains(trimmedBarcode)) {
-      _showDuplicateScanDialog(trimmedBarcode);
+      _showDuplicateScanDialog(context, trimmedBarcode);
       return;
     }
 
@@ -256,16 +265,17 @@ class BarcodeScannerController extends GetxController {
   }
 
   /// Toggle manual entry mode
-  void toggleManualEntry() {
-    _showManualEntryDialog();
+  void toggleManualEntry(BuildContext context) {
+    _showManualEntryDialog(context);
   }
 
   /// Show manual entry dialog with proper keyboard handling
-  void _showManualEntryDialog() {
+  void _showManualEntryDialog(BuildContext context) {
     final TextEditingController textController = TextEditingController();
 
-    Get.dialog(
-      AlertDialog(
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
         title: Text('enter_barcode_manually'.tr),
         content: SingleChildScrollView(
           child: Column(
@@ -293,7 +303,7 @@ class BarcodeScannerController extends GetxController {
                 onSubmitted: (value) {
                   Navigator.of(Get.overlayContext!).pop();
                   if (value.trim().isNotEmpty) {
-                    onManualEntrySubmitted(value.trim());
+                    onManualEntrySubmitted(value.trim(), context);
                   }
                 },
               ),
@@ -310,7 +320,7 @@ class BarcodeScannerController extends GetxController {
               Navigator.of(Get.overlayContext!).pop();
               final barcode = textController.text.trim();
               if (barcode.isNotEmpty) {
-                onManualEntrySubmitted(barcode);
+                onManualEntrySubmitted(barcode, context);
               }
             },
             style: ElevatedButton.styleFrom(
@@ -343,6 +353,7 @@ class BarcodeScannerController extends GetxController {
     }
 
     if (isDropLocationMode.value) {
+      TourStateService().endTour(appointmentId: int.tryParse(appointmentId.value));
       // For drop location, go to location code screen
       Get.offNamed(
         AppRoutes.locationCode,
@@ -400,20 +411,32 @@ class BarcodeScannerController extends GetxController {
     }
   }
 
-  /// Show duplicate scan dialog
-  void _showDuplicateScanDialog(String barcode) {
-    Get.dialog(
-      AlertDialog(
-        title: Text('duplicate_scan'.tr),
-        content: Text('already_scanned_sample'.trParams({'id': barcode})),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(Get.overlayContext!).pop(),
-            child: Text('ok'.tr),
-          ),
-        ],
-      ),
-    );
+  // Show duplicate scan dialog
+  Future<void> _showDuplicateScanDialog(
+    BuildContext context,
+    String barcode,
+  ) async {
+    if (_dialogOpen) return;
+    _dialogOpen = true;
+
+    try {
+      await showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (dialogContext) => AlertDialog(
+          title: Text('duplicate_scan'.tr),
+          content: Text('already_scanned_sample'.trParams({'id': barcode})),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: Text('ok'.tr),
+            ),
+          ],
+        ),
+      );
+    } finally {
+      _dialogOpen = false;
+    }
   }
 
   /// Show scan success dialog

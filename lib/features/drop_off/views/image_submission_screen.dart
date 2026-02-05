@@ -13,51 +13,43 @@ class ImageSubmissionScreen extends GetView<ImageSubmissionController> {
 
   @override
   Widget build(BuildContext context) {
-    return PopScope(
-      canPop: true,
-      onPopInvokedWithResult: (didPop, result) {
-        if (didPop) {
-          Navigator.of(context).pop();
-        }
-      },
-      child: Scaffold(
-        backgroundColor: AppColors.background,
-        appBar: AppBar(
-          title: Text('submit'.tr),
-          backgroundColor: AppColors.primary,
-          foregroundColor: AppColors.textOnPrimary,
-          elevation: 0,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      appBar: AppBar(
+        title: Text('submit'.tr),
+        backgroundColor: AppColors.primary,
+        foregroundColor: AppColors.textOnPrimary,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: controller.onBackPressed,
         ),
-        body: Padding(
-          padding: EdgeInsets.all(16.w),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header Section
-              const ImageSubmissionHeaderWidget(),
+      ),
+      body: Padding(
+        padding: EdgeInsets.all(16.w),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header Section
+            const ImageSubmissionHeaderWidget(),
 
-              SizedBox(height: 32.h),
+            SizedBox(height: 32.h),
 
-              // Image Preview Section
-              const ImagePreviewWidget(),
+            // Image Preview Section
+            const ImagePreviewWidget(),
 
-              SizedBox(height: 32.h),
+            SizedBox(height: 32.h),
 
-              // Image Selection Buttons
-              const ImageSelectionButtonsWidget(),
+            // Image Selection Buttons
+            const ImageSelectionButtonsWidget(),
 
-              const Spacer(),
+            const Spacer(),
 
-              // Action Buttons
-              const ImageSubmissionActionButtonsWidget(),
+            // Action Buttons
+            const ImageSubmissionActionButtonsWidget(),
 
-              SizedBox(height: 16.h),
-            ],
-          ),
+            SizedBox(height: 16.h),
+          ],
         ),
       ),
     );

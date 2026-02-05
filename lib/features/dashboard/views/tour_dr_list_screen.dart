@@ -50,12 +50,19 @@ class _TourDrListScreenState extends State<TourDrListScreen> {
     final id = _tourId;
     if (id == null) return;
 
+    final appointmentId = int.tryParse(
+      _todaysController.todaySchedule.value?.data?.getAppointmentIdForTour(
+            int.tryParse(id),
+          ) ??
+          '',
+    );
+
     if (!_tourState.hasActiveTour || _tourState.currentTourId != id) {
-      _tourState.startTour(id);
+      _tourState.startTour(id, appointmentId);
     } else {
-      _tourState.callStartTourAPI(id);
+      _tourState.callStartTourAPI(id, appointmentId: appointmentId);
     }
-    _tourState.callFirstAppointmentStartAPI();
+    _tourState.callFirstAppointmentStartAPI(appointmentId: appointmentId);
   }
 
   Future<void> _handleExit() async {
@@ -64,60 +71,17 @@ class _TourDrListScreenState extends State<TourDrListScreen> {
 
     try {
       final id = _tourId;
-      bool shouldExitSilent = false;
-
-      if (id == null || !_tourState.hasActiveTour) {
-        shouldExitSilent = true;
-      } else {
-        final tours = _todaysController.todaySchedule.value?.data?.tours ?? [];
-        if (tours.isEmpty) {
-          shouldExitSilent = true;
-        } else {
-          final tour = tours.firstWhere(
-            (t) => t.id?.toString() == id,
-            orElse: () => tours.first,
-          );
-
-          final totalDoctors = tour.allDoctors.length;
-          final completed = _tourState.completedDoctorIds.length;
-
-          // If all doctors completed → silent exit
-          if (totalDoctors > 0 && completed >= totalDoctors) {
-            shouldExitSilent = true;
-          }
-        }
-      }
-
-      if (shouldExitSilent) {
-        await _tourState.deleteTourTime();
-        await _tourState.endTour();
-        // Don't reset _exiting here, do it in finally or before async gap if needed
-        // But since we are popping, it's fine.
-        // Actually, we need to set _canPop = true.
-
-        if (mounted) {
-          setState(() => _canPop = true);
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (!mounted) return;
-            final navigator = Get.key.currentState;
-            if (navigator != null && navigator.canPop()) {
-              navigator.pop();
-              return;
-            }
-            Navigator.of(context).maybePop();
-          });
-        }
-        return;
-      }
-
+      final appointmentId = id == null
+          ? null
+          : int.tryParse(
+              _todaysController.todaySchedule.value?.data
+                      ?.getAppointmentIdForTour(int.tryParse(id)) ??
+                  '',
+            );
       final tours = _todaysController.todaySchedule.value?.data?.tours ?? [];
-      final tour = tours.firstWhere(
-        (t) => t.id?.toString() == id,
-        orElse: () => tours.first,
-      );
-      final totalDoctors = tour.allDoctors.length;
+      final tour = tours.firstWhereOrNull((t) => t.id?.toString() == id);
+      final totalDoctors = tour?.allDoctors.length ?? 0;
       final completed = _tourState.completedDoctorIds.length;
-
       await Get.dialog(
         ExitTourWarningDialog(
           totalDoctors: totalDoctors,
@@ -125,8 +89,10 @@ class _TourDrListScreenState extends State<TourDrListScreen> {
           visitedDoctors: _tourState.visitedDoctorIds.length,
           samplesSubmitted: _tourState.samplesSubmittedCount.value,
           onConfirm: () {
-            _tourState.deleteTourTime();
-            _tourState.endTour();
+            // Future.microtask(() async {
+            //   await _tourState.deleteTourTime(appointmentId: appointmentId);
+            //   await _tourState.endTour(appointmentId: appointmentId);
+            // });
             final navigator = Get.key.currentState;
             if (navigator != null) {
               navigator.pushNamedAndRemoveUntil(
@@ -136,8 +102,9 @@ class _TourDrListScreenState extends State<TourDrListScreen> {
             }
           },
           onSilentExit: () {
-            _tourState.deleteTourTime();
-            _tourState.endTour();
+            Future.microtask(() async {
+              await _tourState.deleteTourTime(appointmentId: appointmentId);
+            });
             final navigator = Get.key.currentState;
             if (navigator != null) {
               navigator.pushNamedAndRemoveUntil(
@@ -174,6 +141,7 @@ class _TourDrListScreenState extends State<TourDrListScreen> {
         appBar: AppBar(
           backgroundColor: AppColors.primary,
           centerTitle: true,
+          automaticallyImplyLeading: true,
           title: Text(
             'details'.tr,
             style: TextStyle(
@@ -183,8 +151,7 @@ class _TourDrListScreenState extends State<TourDrListScreen> {
             ),
           ),
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            color: AppColors.textOnPrimary,
+            icon: const Icon(Icons.arrow_back, color: AppColors.textOnPrimary),
             onPressed: () async {
               // Manually trigger exit check
               await _handleExit();

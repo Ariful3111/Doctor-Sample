@@ -13,7 +13,7 @@ class ImageSelectionButtonsWidget extends GetView<ImageSubmissionController> {
       width: double.infinity,
       height: 50.h,
       child: ElevatedButton.icon(
-        onPressed: () => controller.selectImage(),
+        onPressed: () => controller.selectImage(context),
         icon: Icon(Icons.camera_alt, color: AppColors.textOnPrimary),
         label: Text(
           'take_photo'.tr,

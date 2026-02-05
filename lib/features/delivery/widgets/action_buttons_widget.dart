@@ -19,7 +19,7 @@ class ActionButtonsWidget extends GetView<BarcodeScannerController> {
         children: [
           Expanded(
             child: TextButton.icon(
-              onPressed: controller.toggleManualEntry,
+              onPressed: () => controller.toggleManualEntry(context),
               icon: const Icon(Icons.keyboard),
               label: Text('enter_manually'.tr),
               style: TextButton.styleFrom(

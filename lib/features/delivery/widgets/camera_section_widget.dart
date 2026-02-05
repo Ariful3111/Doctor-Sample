@@ -34,7 +34,7 @@ class CameraSectionWidget extends GetView<BarcodeScannerController> {
               color: Colors.black87,
               child: Obx(
                 () => controller.isCameraInitialized.value
-                    ? _buildCameraView()
+                    ? _buildCameraView(context)
                     : _buildCameraLoading(),
               ),
             ),
@@ -51,7 +51,7 @@ class CameraSectionWidget extends GetView<BarcodeScannerController> {
     );
   }
 
-  Widget _buildCameraView() {
+  Widget _buildCameraView(BuildContext context) {
     return Stack(
       children: [
         // Camera preview placeholder
@@ -92,7 +92,7 @@ class CameraSectionWidget extends GetView<BarcodeScannerController> {
           child: FloatingActionButton(
             mini: true,
             backgroundColor: AppColors.primary,
-            onPressed: controller.simulateScan,
+            onPressed: () => controller.simulateScan(context),
             child: const Icon(Icons.qr_code_scanner, color: Colors.white),
           ),
         ),

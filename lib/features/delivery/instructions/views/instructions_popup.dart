@@ -42,7 +42,7 @@ class InstructionsPopup extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildHeader(),
+          _buildHeader(context),
           SizedBox(height: 20.h),
 
           // Address info - only show if exists
@@ -77,16 +77,16 @@ class InstructionsPopup extends StatelessWidget {
           ],
 
           // Details section - always show the section
-          _buildDetailsSection(controller),
+          _buildDetailsSection(controller, context),
           SizedBox(height: 20.h),
 
-          _buildCloseButton(),
+          _buildCloseButton(context),
         ],
       ),
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -99,7 +99,7 @@ class InstructionsPopup extends StatelessWidget {
           ),
         ),
         GestureDetector(
-          onTap: () => Get.back(),
+          onTap: () => Navigator.pop(context),
           child: Icon(Icons.close, color: AppColors.textSecondary, size: 28.w),
         ),
       ],
@@ -173,7 +173,7 @@ class InstructionsPopup extends StatelessWidget {
     );
   }
 
-  Widget _buildDetailsSection(InstructionsController controller) {
+  Widget _buildDetailsSection(InstructionsController controller, BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -183,7 +183,7 @@ class InstructionsPopup extends StatelessWidget {
             icon: Icons.picture_as_pdf,
             label: 'pdf_file'.tr,
             value: 'view_pdf'.tr,
-            onTap: () => _openPdf(controller.pdfLink.value),
+            onTap: () => _openPdf(controller.pdfLink.value, context),
           ),
           SizedBox(height: 16.h),
         ],
@@ -213,11 +213,11 @@ class InstructionsPopup extends StatelessWidget {
     );
   }
 
-  Widget _buildCloseButton() {
+  Widget _buildCloseButton(BuildContext context) {
     return Align(
       alignment: Alignment.centerRight,
       child: ElevatedButton(
-        onPressed: () => Get.back(),
+        onPressed: () => Navigator.pop(context),
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primary,
           shape: RoundedRectangleBorder(
@@ -256,10 +256,12 @@ class InstructionsPopup extends StatelessWidget {
     }
   }
 
-  Future<void> _openPdf(String pdfUrl) async {
+  Future<void> _openPdf(String pdfUrl, BuildContext context) async {
     try {
       // Navigate to PDF viewer screen
+      Navigator.pop(context);
       Get.to(() => const PdfViewerScreen(), arguments: pdfUrl);
+      
     } catch (e) {
       SnackbarUtils.showError(
         title: 'error'.tr,

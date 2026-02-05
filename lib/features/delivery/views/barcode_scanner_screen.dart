@@ -22,15 +22,28 @@ class BarcodeScannerScreen extends StatefulWidget {
 class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
   late MobileScannerController cameraController;
   bool _hasNavigatedBack = false; // Prevent multiple back navigation
+  late Worker _processingWorker;
 
   @override
   void initState() {
     super.initState();
     cameraController = MobileScannerController();
+    final controller = Get.find<BarcodeScannerController>();
+    _processingWorker = ever<bool>(controller.isProcessing, (processing) async {
+      if (!mounted) return;
+      try {
+        if (processing) {
+          await cameraController.stop();
+        } else {
+          await cameraController.start();
+        }
+      } catch (_) {}
+    });
   }
 
   @override
   void dispose() {
+    _processingWorker.dispose();
     cameraController.dispose();
     super.dispose();
   }
@@ -119,7 +132,7 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
                 },
               ),
             IconButton(
-              icon: const Icon(Icons.info_outline),
+              icon: Icon(Icons.info_outline),
               onPressed: () => _showScanningInstructions(context),
               iconSize: 24.0,
             ),
@@ -137,6 +150,7 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
             child: MobileScanner(
               controller: cameraController,
               onDetect: (capture) {
+                if (controller.isProcessing.value) return;
                 final List<Barcode> barcodes = capture.barcodes;
                 for (final barcode in barcodes) {
                   // Drop location mode - handle differently
@@ -173,7 +187,7 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
                   }
 
                   // Regular pickup mode
-                  controller.onBarcodeDetected(barcode.rawValue ?? '');
+                  controller.onBarcodeDetected(barcode.rawValue ?? '', context);
                 }
               },
             ),

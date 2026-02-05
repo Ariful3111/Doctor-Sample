@@ -136,7 +136,7 @@ class TodaysTaskController extends GetxController {
               // Print all doctor names for debug
               if (tour.allDoctors.isNotEmpty) {
                 for (var doc in tour.allDoctors) {
-                  print('      Doctor: ${doc.name} (ID: ${doc.id})');
+                  print('Doctor: ${doc.name} (ID: ${doc.id})');
                 }
               }
             }
@@ -191,9 +191,15 @@ class TodaysTaskController extends GetxController {
         tourName: tourName,
         doctorCount: doctorCount,
         onConfirm: () async {
+          final appointmentId = int.tryParse(
+            todaySchedule.value?.data?.getAppointmentIdForTour(
+                  int.tryParse(taskId),
+                ) ??
+                '',
+          );
           // Start the tour
           print('🚀 Starting tour: $taskId');
-          await tourStateService.startTour(taskId);
+          await tourStateService.startTour(taskId, appointmentId);
           print('✅ Tour started, navigating to tour list');
           // Add small delay to ensure tour state is updated
           await Future.delayed(const Duration(milliseconds: 300));

@@ -49,6 +49,7 @@ class ImageSubmissionController extends GetxController {
   final RxString _selectedImagePath = ''.obs;
   final RxBool _canSubmit = false.obs;
   final RxBool _isSubmitting = false.obs;
+  final RxBool _isPopping = false.obs;
 
   // Getters
   String get selectedImagePath => _selectedImagePath.value;
@@ -59,6 +60,26 @@ class ImageSubmissionController extends GetxController {
   RxString get selectedImagePath$ => _selectedImagePath;
   RxBool get canSubmit$ => _canSubmit;
   RxBool get isSubmitting$ => _isSubmitting;
+
+  Future<void> onBackPressed() async {
+    if (_isPopping.value) return;
+    _isPopping.value = true;
+
+    try {
+      final navigator = Get.key.currentState;
+      if (navigator != null) {
+        await navigator.maybePop();
+        return;
+      }
+
+      final ctx = Get.context;
+      if (ctx != null) {
+        await Navigator.of(ctx).maybePop();
+      }
+    } finally {
+      _isPopping.value = false;
+    }
+  }
 
   @override
   void onInit() {
@@ -116,7 +137,7 @@ class ImageSubmissionController extends GetxController {
   }
 
   /// Show image selection dialog with camera and gallery options
-  void selectImage() {
+  void selectImage(BuildContext context) {
     if (_isSubmitting.value) {
       SnackbarUtils.showWarning(
         title: 'please_wait'.tr,
@@ -125,11 +146,11 @@ class ImageSubmissionController extends GetxController {
       return;
     }
 
-    _showImageSourceDialog();
+    _showImageSourceDialog(context);
   }
 
   /// Show dialog for selecting image source
-  void _showImageSourceDialog() {
+  void _showImageSourceDialog(BuildContext context) {
     Get.dialog(
       AlertDialog(
         title: Text('select_image'.tr),
@@ -137,7 +158,7 @@ class ImageSubmissionController extends GetxController {
         actions: [
           TextButton(
             onPressed: () {
-              Get.back();
+              Navigator.pop(context);
               _selectFromCamera();
             },
             child: Text('camera'.tr),

@@ -7,6 +7,7 @@ import '../../../core/routes/app_routes.dart';
 import '../../../core/services/tour_state_service.dart';
 import '../../../core/constants/network_paths.dart';
 import '../../../data/local/storage_service.dart';
+import '../../dashboard/controllers/todays_task_controller.dart';
 
 class PickupConfirmationController extends GetxController {
   // Reactive variables
@@ -116,16 +117,20 @@ class PickupConfirmationController extends GetxController {
       // Check if tour is complete
       print('Step 3: Checking if tour is complete...');
       final isTourComplete = await tourStateService.checkAndCompleteTour();
+      final tourId = tourStateService.currentTourId;
+      final remainingDoctors = await _getRemainingDoctorsCount(
+        tourId: tourId,
+        tourStateService: tourStateService,
+      );
 
-      if (isTourComplete) {
-        print('Step 3: Tour is complete');
-        // Show tour completion message
+      final shouldGoTodaysTask = remainingDoctors == 0 || tourId == null;
+
+      if (isTourComplete || shouldGoTodaysTask) {
         SnackbarUtils.showSuccess(
           title: 'tour_completed'.tr,
           message: 'tour_completed_message'.tr,
         );
 
-        // Navigate back to today's task screen
         final navigator = Get.key.currentState;
         if (navigator != null) {
           navigator.pushNamedAndRemoveUntil(
@@ -134,22 +139,46 @@ class PickupConfirmationController extends GetxController {
           );
         }
       } else {
-        // Show pickup confirmation message
         SnackbarUtils.showSuccess(
           title: 'pickup_confirmed_title'.tr,
           message: 'pickup_confirmed_message'.tr,
         );
 
-        // Navigate back to doctor list immediately (don't wait for snackbar)
         final navigator = Get.key.currentState;
         if (navigator != null) {
-          navigator.popUntil((route) => route.isFirst);
+          navigator.pushNamedAndRemoveUntil(
+            AppRoutes.tourDrList,
+            (route) => false,
+            arguments: {'taskId': tourId},
+          );
         }
       }
     } finally {
       // Always set loading state to false
       isSubmitting.value = false;
     }
+  }
+
+  Future<int?> _getRemainingDoctorsCount({
+    required String? tourId,
+    required TourStateService tourStateService,
+  }) async {
+    if (tourId == null || tourId.isEmpty) return null;
+    if (!Get.isRegistered<TodaysTaskController>()) return null;
+
+    final todaysTaskController = Get.find<TodaysTaskController>();
+    if (todaysTaskController.todaySchedule.value == null) {
+      await todaysTaskController.refreshTasks();
+    }
+
+    final tours = todaysTaskController.todaySchedule.value?.data?.tours ?? [];
+    final tour = tours.firstWhereOrNull((t) => t.id?.toString() == tourId);
+    if (tour == null) return null;
+
+    return tour.allDoctors.where((d) {
+      final id = d.id?.toString() ?? '';
+      return !tourStateService.completedDoctorIds.contains(id);
+    }).length;
   }
 
   /// Call startReport API

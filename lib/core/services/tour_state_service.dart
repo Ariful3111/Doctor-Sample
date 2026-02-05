@@ -10,6 +10,14 @@ import '../constants/network_paths.dart';
 class TourStateService extends GetxService {
   final StorageService _storage = Get.find<StorageService>();
 
+  String _formatDate(DateTime value) {
+    return '${value.year}-${value.month.toString().padLeft(2, '0')}-${value.day.toString().padLeft(2, '0')}';
+  }
+
+  String _formatHHmm(DateTime value) {
+    return '${value.hour.toString().padLeft(2, '0')}:${value.minute.toString().padLeft(2, '0')}';
+  }
+
   // Storage keys
   static const _activeTourKey = 'active_tour_id';
   static const _activeTourStartTimeKey = 'active_tour_start_time';
@@ -67,39 +75,48 @@ class TourStateService extends GetxService {
   // ============================
   // TOUR START
   // ============================
-  Future<void> startTour(String tourId) async {
+  Future<void> startTour(String tourId, int? appointmentId) async {
     if (hasActiveTour && activeTourId!.value == tourId) return;
 
     final now = DateTime.now();
-    final date =
-        '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+    final date = _formatDate(now);
 
     await _storage.write(key: _activeTourKey, value: tourId);
+    await _storage.write(key: 'tourId', value: int.tryParse(tourId) ?? tourId);
     await _storage.write(
       key: _activeTourStartTimeKey,
       value: now.toIso8601String(),
     );
     await _storage.write(key: _tourStartDateKey, value: date);
+    await _storage.write(key: 'appointment_start_date', value: date);
     await _storage.write(key: _tourIntentionalExitKey, value: false);
-
+    print('Tour started: $tourId, Date: $date, Time: ${_formatHHmm(now)}');
     activeTourId!.value = tourId;
     tourStartDate.value = date;
     tourStartTime.value = now;
     tourIntentionalExit.value = false;
 
-    await _callStartTourAPI(tourId);
+    await _callStartTourAPI(
+      tourId,
+      date: date,
+      timestamp: now,
+      appointmentId: appointmentId,
+    );
   }
 
   // ============================
   // TOUR END (SINGLE ENTRY)
   // ============================
-  Future<void> endTour() async {
+  Future<void> endTour({int? appointmentId}) async {
     if (_ending) return;
     _ending = true;
 
     try {
       if (activeTourId!.value.isNotEmpty) {
-        await _callEndTourAPI(activeTourId!.value);
+        await _callEndTourAPI(
+          activeTourId!.value,
+          appointmentId: appointmentId,
+        );
       }
     } catch (_) {}
 
@@ -108,6 +125,12 @@ class TourStateService extends GetxService {
 
     _clearLocalState();
     _ending = false;
+  }
+
+  Future<void> clearTourState() async {
+    await _storage.write(key: _tourIntentionalExitKey, value: true);
+    tourIntentionalExit.value = true;
+    _clearLocalState();
   }
 
   void _clearLocalState() {
@@ -156,17 +179,33 @@ class TourStateService extends GetxService {
   // ============================
   // API CALLS
   // ============================
-  Future<void> _callStartTourAPI(String tourId) async {
+  Future<void> _callStartTourAPI(
+    String tourId, {
+    String? date,
+    DateTime? timestamp,
+    int? appointmentId,
+  }) async {
     final driverId = _storage.read<int>(key: 'id');
     if (driverId == null) return;
 
-    final now = DateTime.now();
+    final now = timestamp ?? DateTime.now();
+    final dateCandidate = (date ?? tourStartDate.value).trim();
+    final effectiveDate = dateCandidate.isNotEmpty
+        ? dateCandidate
+        : _formatDate(now);
+    if (tourStartDate.value != effectiveDate) {
+      tourStartDate.value = effectiveDate;
+      await _storage.write(key: _tourStartDateKey, value: effectiveDate);
+      await _storage.write(key: 'appointment_start_date', value: effectiveDate);
+    }
+    print(
+      'Starting tour: $tourId, Date: $effectiveDate, Start Time: ${_formatHHmm(now)}, Appointment ID: $appointmentId',
+    );
     final body = {
-      'driverId': driverId,
       'tourId': int.tryParse(tourId) ?? tourId,
-      'date': tourStartDate.value,
-      'startTime':
-          '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}',
+      'date': effectiveDate,
+      'startTime': _formatHHmm(now),
+      'appointmentId': appointmentId,
     };
 
     await http.post(
@@ -176,22 +215,38 @@ class TourStateService extends GetxService {
     );
   }
 
-  Future<void> _callEndTourAPI(String tourId) async {
+  Future<void> _callEndTourAPI(String tourId, {int? appointmentId}) async {
     final driverId = _storage.read<int>(key: 'id');
     if (driverId == null) return;
-
     final now = DateTime.now();
-    final body = {
-      'driverId': driverId,
-      'tourId': int.tryParse(tourId) ?? tourId,
-      'date': tourStartDate.value,
-      'endTime':
-          '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}',
-      'endedDoctors': completedDoctorIds.length,
-      'samplesSubmitted': samplesSubmittedCount.value,
-      'exit': 1,
-    };
+    final storedStartDate = tourStartDate.value.trim();
+    final effectiveStartDate = storedStartDate.isNotEmpty
+        ? storedStartDate
+        : _formatDate(now);
+    final todayDate = _formatDate(now);
+    final isSameDay = effectiveStartDate == todayDate;
+    final endTimeToSend = isSameDay ? _formatHHmm(now) : '23:59';
+    final exitFlag = isSameDay ? 0 : 1;
 
+    if (tourStartDate.value != effectiveStartDate) {
+      tourStartDate.value = effectiveStartDate;
+      await _storage.write(key: _tourStartDateKey, value: effectiveStartDate);
+      await _storage.write(
+        key: 'appointment_start_date',
+        value: effectiveStartDate,
+      );
+    }
+
+    final body = {
+      'tourId': int.tryParse(tourId) ?? tourId,
+      'date': effectiveStartDate,
+      'endTime': endTimeToSend,
+      'exit': exitFlag,
+      'appointmentId': appointmentId,
+    };
+    print(
+      'Ending tour: $tourId, Date: $effectiveStartDate, End Time: $endTimeToSend, Exit Flag: $exitFlag, Appointment ID: $appointmentId',
+    );
     await http.post(
       Uri.parse('${NetworkPaths.baseUrl}${NetworkPaths.endTour}'),
       headers: {'Content-Type': 'application/json'},
@@ -209,17 +264,20 @@ class TourStateService extends GetxService {
   // ============================
   // PUBLIC WRAPPER METHODS (for external calls)
   // ============================
-  Future<void> callStartTourAPI(String tourId) async {
-    await _callStartTourAPI(tourId);
+  Future<void> callStartTourAPI(String tourId, {int? appointmentId}) async {
+    await _callStartTourAPI(tourId, appointmentId: appointmentId);
   }
 
-  Future<void> callFirstAppointmentStartAPI() async {
-    await _callStartTourAPI(activeTourId!.value);
+  Future<void> callFirstAppointmentStartAPI({int? appointmentId}) async {
+    await _callStartTourAPI(activeTourId!.value, appointmentId: appointmentId);
   }
 
-  Future<void> deleteTourTime() async {
+  Future<void> deleteTourTime({int? appointmentId}) async {
     if (activeTourId!.value.isNotEmpty) {
-      await _callDeleteTourTimeAPI(activeTourId!.value);
+      await _callDeleteTourTimeAPI(
+        activeTourId!.value,
+        appointmentId: appointmentId,
+      );
     }
   }
 
@@ -230,16 +288,37 @@ class TourStateService extends GetxService {
   // ============================
   // INTERNAL PRIVATE METHODS
   // ============================
-  Future<void> _callDeleteTourTimeAPI(String tourId) async {
+  Future<void> _callDeleteTourTimeAPI(
+    String tourId, {
+    int? appointmentId,
+  }) async {
     final driverId = _storage.read<int>(key: 'id');
     if (driverId == null) return;
+    final now = DateTime.now();
+    final storedStartDate = tourStartDate.value.trim();
+    final effectiveStartDate = storedStartDate.isNotEmpty
+        ? storedStartDate
+        : _formatDate(now);
+    final exitFlag = samplesSubmittedCount.value > 0 ? 1 : 0;
+    if (tourStartDate.value != effectiveStartDate) {
+      tourStartDate.value = effectiveStartDate;
+      await _storage.write(key: _tourStartDateKey, value: effectiveStartDate);
+      await _storage.write(
+        key: 'appointment_start_date',
+        value: effectiveStartDate,
+      );
+    }
 
     try {
       final body = {
         'driverId': driverId,
         'tourId': int.tryParse(tourId) ?? tourId,
+        'date': effectiveStartDate,
+        'time': _formatHHmm(now),
+        'appointmentId': appointmentId,
+        'exit': exitFlag,
       };
-
+      print('--------Exit: $exitFlag--------');
       await http.post(
         Uri.parse('${NetworkPaths.baseUrl}${NetworkPaths.deleteTourTime}'),
         headers: {'Content-Type': 'application/json'},
@@ -270,7 +349,11 @@ class TourStateService extends GetxService {
         body: jsonEncode(body),
       );
 
-      return response.statusCode == 200;
+      final completed = response.statusCode == 200;
+      if (completed) {
+        await clearTourState();
+      }
+      return completed;
     } catch (e) {
       print('❌ Error checking tour completion: $e');
       return false;

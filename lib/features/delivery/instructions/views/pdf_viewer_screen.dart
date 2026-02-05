@@ -81,7 +81,7 @@ class _PdfViewerScreenState extends State<PdfViewerScreen> {
         ),
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: Colors.white, size: 24.0),
-          onPressed: () => Get.back(),
+          onPressed: () => Navigator.pop(context),
         ),
       ),
       body: isLoading

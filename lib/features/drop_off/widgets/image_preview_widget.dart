@@ -22,10 +22,7 @@ class ImagePreviewWidget extends GetView<ImageSubmissionController> {
             color: AppColors.textPrimary,
           ),
         ),
-
         SizedBox(height: 16.h),
-
-        // Image Preview and Selection
         Obx(
           () => Container(
             width: double.infinity,

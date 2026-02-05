@@ -129,7 +129,7 @@ class TourModel {
     final doctorsList =
         json['availableDoctors'] ?? json['regularDoctors'] ?? [];
     final regular = doctorsList is List
-        ? (doctorsList as List).map((e) => Doctor.fromJson(e)).toList()
+        ? (doctorsList).map((e) => Doctor.fromJson(e)).toList()
         : <Doctor>[];
 
     final extra = json['extraDoctors'] is List

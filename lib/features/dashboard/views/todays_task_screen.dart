@@ -178,6 +178,7 @@ class _TodaysTaskScreenState extends State<TodaysTaskScreen> {
                     physics: const NeverScrollableScrollPhysics(),
                     itemCount: tours.length,
                     itemBuilder: (context, index) {
+                      final currentTime = DateTime.now();
                       final tour = tours[index];
                       final task = {
                         'id': tour.id?.toString() ?? '',
@@ -185,8 +186,8 @@ class _TodaysTaskScreenState extends State<TodaysTaskScreen> {
                         'doctorCount': tour.allDoctors.length,
                         'completedCount': 0,
                         'status': 'Pending',
-                        'startTime': '',
-                        'estimatedEnd': '',
+                        'startTime': currentTime,
+                        'estimatedEnd': currentTime,
                       };
                       return TaskCardWidget(task: task, controller: controller);
                     },

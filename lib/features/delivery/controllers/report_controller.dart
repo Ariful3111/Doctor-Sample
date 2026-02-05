@@ -1,4 +1,5 @@
 import 'package:doctor_app/core/routes/app_routes.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -7,8 +8,7 @@ import '../../../data/local/storage_service.dart';
 import '../../../core/utils/snackbar_utils.dart';
 
 class ReportController extends GetxController {
-  final reportText = ''.obs;
-  final RxBool isSubmitting = false.obs;
+  RxString reportText = ''.obs;
 
   // Doctor info from arguments
   String doctorId = '';
@@ -109,11 +109,6 @@ class ReportController extends GetxController {
       );
       return;
     }
-
-    isSubmitting.value = true;
-    // Don't submit problem report here anymore - it will be submitted with image
-    isSubmitting.value = false;
-
     // Navigate to image submission screen with flag and doctor info
     // Set appropriate flags based on report type
     Get.toNamed(
@@ -134,9 +129,5 @@ class ReportController extends GetxController {
     print(
       '✅ submitReport -> ImageSubmissionController: isExtraPickup=$isExtraPickup',
     );
-  }
-
-  void goBack() {
-    Get.back();
   }
 }

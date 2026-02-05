@@ -138,7 +138,7 @@ class ExitTourWarningDialog extends StatelessWidget {
         TextButton(
           onPressed: () {
             Navigator.of(context).pop(); // Close dialog first
-            onSilentExit(); // Then execute callback
+            onConfirm(); // Then execute callback
           },
           child: Text(
             'Exit',

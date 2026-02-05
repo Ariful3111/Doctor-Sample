@@ -21,9 +21,7 @@ class NetworkPaths {
 
   // Appointment APIs
   static String appointmentStart(String appointmentId) =>
-      '/api/appointments/start/$appointmentId';
-  static String appointmentComplete(String appointmentId) =>
-      '/api/appointments/complete/$appointmentId';
+      '/api/startTour/$appointmentId';
   static String appointmentsByDriver(String driverId, String date) =>
       '/api/appointments/driver/$driverId/$date';
 
