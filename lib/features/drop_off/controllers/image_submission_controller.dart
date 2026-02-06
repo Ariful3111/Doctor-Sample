@@ -13,6 +13,7 @@ import '../../../core/routes/app_routes.dart';
 import '../../../core/constants/network_paths.dart';
 import '../../../data/local/storage_service.dart';
 import '../../../core/services/tour_state_service.dart';
+import '../../dashboard/controllers/todays_task_controller.dart';
 import '../repositories/submit_drop_off_repo.dart';
 
 /// Controller for managing image submission functionality
@@ -111,6 +112,8 @@ class ImageSubmissionController extends GetxController {
       isExtraPickup = args['isExtraPickup'] ?? false; // Load extra pickup flag
       extraPickupId = args['extraPickupId']; // Load extra pickup ID
 
+      _resolveIsExtraPickupFromTourApi();
+
       print('🔍 _loadArguments DEBUG:');
       print('   isFromDoctorReport: $isFromDoctorReport');
       print('   isDropPointReport: $isDropPointReport');
@@ -120,6 +123,131 @@ class ImageSubmissionController extends GetxController {
       print('   isExtraPickup: $isExtraPickup');
       print('   extraPickupId: $extraPickupId');
       print('   ⚠️ ExtraTour WILL BE: ${isExtraPickup ? 1 : 0}');
+    }
+  }
+
+  void _resolveIsExtraPickupFromTourApi() {
+    if (doctorId.isEmpty) return;
+
+    String effectiveTourId = tourId.trim();
+    if (effectiveTourId.isEmpty) {
+      effectiveTourId = Get.find<TourStateService>().currentTourId ?? '';
+    }
+
+    if (effectiveTourId.isEmpty || !Get.isRegistered<TodaysTaskController>()) {
+      return;
+    }
+
+    final todaysTaskController = Get.find<TodaysTaskController>();
+    final tours = todaysTaskController.todaySchedule.value?.data?.tours ?? [];
+    final tour = tours.firstWhereOrNull(
+      (t) => t.id?.toString() == effectiveTourId,
+    );
+    if (tour == null) return;
+
+    final doctor = tour.allDoctors.firstWhereOrNull(
+      (d) => d.id?.toString() == doctorId,
+    );
+    if (doctor == null) return;
+
+    isExtraPickup = doctor.isExtraPickup;
+    extraPickupId = doctor.extraPickupId;
+
+    print('✅ Resolved from tour API:');
+    print('   tourId: $effectiveTourId');
+    print('   doctorId: $doctorId');
+    print('   isExtraPickup: $isExtraPickup');
+    print('   extraPickupId: $extraPickupId');
+  }
+
+  Future<int?> _getRemainingDoctorsForTour(
+    String effectiveTourId,
+    TourStateService tourStateService,
+  ) async {
+    if (!Get.isRegistered<TodaysTaskController>()) return null;
+
+    final todaysTaskController = Get.find<TodaysTaskController>();
+    if (todaysTaskController.todaySchedule.value == null) {
+      await todaysTaskController.refreshTasks();
+    }
+
+    final tours = todaysTaskController.todaySchedule.value?.data?.tours ?? [];
+    final tour = tours.firstWhereOrNull(
+      (t) => t.id?.toString() == effectiveTourId,
+    );
+    if (tour == null) return null;
+
+    var remaining = 0;
+    for (final d in tour.allDoctors) {
+      final id = d.id?.toString() ?? '';
+      if (id.isEmpty) continue;
+      if (!tourStateService.completedDoctorIds.contains(id)) remaining++;
+    }
+    return remaining;
+  }
+
+  Future<String> _resolveEffectiveTourId(
+    TourStateService tourStateService,
+  ) async {
+    var effectiveTourId = tourId.trim();
+    if (effectiveTourId.isEmpty) {
+      effectiveTourId = tourStateService.currentTourId ?? '';
+    }
+    if (effectiveTourId.isNotEmpty) return effectiveTourId;
+
+    final storedTourId = await _storage.read<dynamic>(key: 'tourId');
+    return storedTourId?.toString().trim() ?? '';
+  }
+
+  Future<int?> _resolveAppointmentIdForTour(String effectiveTourId) async {
+    int? aptIdInt = int.tryParse(appointmentId);
+    aptIdInt ??= Get.find<TourStateService>().currentAppointmentId;
+
+    if (aptIdInt == null && Get.isRegistered<TodaysTaskController>()) {
+      final todaysTaskController = Get.find<TodaysTaskController>();
+      if (todaysTaskController.todaySchedule.value == null) {
+        await todaysTaskController.refreshTasks();
+      }
+      aptIdInt = int.tryParse(
+        todaysTaskController.todaySchedule.value?.data?.getAppointmentIdForTour(
+              int.tryParse(effectiveTourId),
+            ) ??
+            '',
+      );
+    }
+    return aptIdInt;
+  }
+
+  Future<bool> _isLastDoctorOfCurrentTour(
+    TourStateService tourStateService,
+  ) async {
+    final effectiveTourId = await _resolveEffectiveTourId(tourStateService);
+    if (effectiveTourId.isEmpty) return false;
+
+    final remaining = await _getRemainingDoctorsForTour(
+      effectiveTourId,
+      tourStateService,
+    );
+    return remaining != null && remaining == 0;
+  }
+
+  Future<void> _endTourForCurrentTourIfPossible(
+    TourStateService tourStateService,
+  ) async {
+    final effectiveTourId = await _resolveEffectiveTourId(tourStateService);
+    if (effectiveTourId.isEmpty) return;
+
+    final aptIdInt = await _resolveAppointmentIdForTour(effectiveTourId);
+    if (aptIdInt == null) return;
+
+    print('🏁 Last doctor detected. Calling endTour API...');
+    final ended = await tourStateService.endTour(
+      appointmentId: aptIdInt,
+      tourId: effectiveTourId,
+    );
+    print('🏁 endTour result: $ended');
+    if (Get.isRegistered<TodaysTaskController>()) {
+      await Get.find<TodaysTaskController>().refreshTasks();
     }
   }
 
@@ -565,6 +693,7 @@ class ImageSubmissionController extends GetxController {
   /// Submit doctor report image to backend
   Future<void> _submitDoctorImage(String imageUrl, int driverId) async {
     try {
+      print('📤 _submitDoctorImage ExtraTour: ${isExtraPickup ? 1 : 0}');
       // If this is a problem report, submit to problem report API with image
       print(
         '🔍 _submitDoctorImage called - reportText: "$reportText" (isEmpty: ${reportText.isEmpty})',
@@ -614,12 +743,14 @@ class ImageSubmissionController extends GetxController {
         message: 'proof_image_submitted_successfully'.tr,
       );
 
-      // Check if tour is complete
-      final isTourComplete = await tourStateService.checkAndCompleteTour();
+      final isLastDoctor = await _isLastDoctorOfCurrentTour(tourStateService);
+      if (isLastDoctor) {
+        await _endTourForCurrentTourIfPossible(tourStateService);
+      }
 
       // Wait a bit for snackbar to be seen, then navigate
       await Future.delayed(const Duration(milliseconds: 800), () {
-        if (isTourComplete) {
+        if (isLastDoctor) {
           // Navigate back to today's task screen
           Get.offAllNamed(AppRoutes.todaysTask);
         } else {
@@ -649,12 +780,14 @@ class ImageSubmissionController extends GetxController {
         message: 'proof_image_submitted_successfully'.tr,
       );
 
-      // Check if tour is complete
-      final isTourComplete = await tourStateService.checkAndCompleteTour();
+      final isLastDoctor = await _isLastDoctorOfCurrentTour(tourStateService);
+      if (isLastDoctor) {
+        await _endTourForCurrentTourIfPossible(tourStateService);
+      }
 
       // Wait a bit for snackbar to be seen, then navigate
       await Future.delayed(const Duration(milliseconds: 800), () {
-        if (isTourComplete) {
+        if (isLastDoctor) {
           // Show tour completion message
           SnackbarUtils.showSuccess(
             title: 'tour_completed'.tr,
@@ -806,12 +939,14 @@ class ImageSubmissionController extends GetxController {
         message: 'proof_image_submitted_successfully'.tr,
       );
 
-      // Check if tour is complete
-      final isTourComplete = await tourStateService.checkAndCompleteTour();
+      final isLastDoctor = await _isLastDoctorOfCurrentTour(tourStateService);
+      if (isLastDoctor) {
+        await _endTourForCurrentTourIfPossible(tourStateService);
+      }
 
       // Wait a bit for snackbar to be seen, then navigate
       await Future.delayed(const Duration(milliseconds: 800), () {
-        if (isTourComplete) {
+        if (isLastDoctor) {
           // Show tour completion message
           SnackbarUtils.showSuccess(
             title: 'tour_completed'.tr,
@@ -847,12 +982,14 @@ class ImageSubmissionController extends GetxController {
         message: 'proof_image_submitted_successfully'.tr,
       );
 
-      // Check if tour is complete
-      final isTourComplete = await tourStateService.checkAndCompleteTour();
+      final isLastDoctor = await _isLastDoctorOfCurrentTour(tourStateService);
+      if (isLastDoctor) {
+        await _endTourForCurrentTourIfPossible(tourStateService);
+      }
 
       // Wait a bit for snackbar to be seen, then navigate
       await Future.delayed(const Duration(milliseconds: 800), () {
-        if (isTourComplete) {
+        if (isLastDoctor) {
           Get.offAllNamed(AppRoutes.todaysTask);
         } else {
           Get.offNamedUntil(

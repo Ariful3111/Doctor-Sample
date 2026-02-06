@@ -164,6 +164,7 @@ class Doctor {
   final String? email;
   final String? phone;
   final int? extraPickupId;
+  final bool isExtraPickup;
 
   Doctor({
     this.id,
@@ -177,6 +178,7 @@ class Doctor {
     this.email,
     this.phone,
     this.extraPickupId,
+    required this.isExtraPickup,
   });
 
   factory Doctor.fromJson(Map<String, dynamic> json) {
@@ -194,6 +196,10 @@ class Doctor {
       email: json['email'],
       phone: json['phone'],
       extraPickupId: json['extraPickupId'],
+      isExtraPickup:
+          _parseBool(json['isExtraPickup']) ||
+          _parseBool(json['isxtraPickup']) ||
+          (json['extraPickupId'] != null),
     );
   }
 }
@@ -255,4 +261,12 @@ class ScheduleMetadata {
 String? _sanitize(dynamic value) {
   if (value == null) return null;
   return value.toString().replaceAll('`', '').trim();
+}
+
+bool _parseBool(dynamic value) {
+  if (value is bool) return value;
+  if (value is num) return value != 0;
+  final s = value?.toString().trim().toLowerCase();
+  if (s == null || s.isEmpty) return false;
+  return s == 'true' || s == '1' || s == 'yes';
 }

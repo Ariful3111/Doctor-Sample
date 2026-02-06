@@ -1,7 +1,9 @@
 import 'package:doctor_app/core/routes/app_routes.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../core/services/tour_state_service.dart';
 import '../../../core/utils/snackbar_utils.dart';
+import '../../dashboard/controllers/todays_task_controller.dart';
 import 'drop_location_controller.dart';
 
 /// Controller for managing location code input and validation
@@ -219,6 +221,26 @@ class LocationCodeController extends GetxController {
   /// Submit the issue report with image
   Future<void> _submitReport() async {
     try {
+      String tourId = '';
+      try {
+        final dropController = Get.find<DropLocationController>();
+        tourId = dropController.tourId;
+      } catch (_) {}
+
+      if (tourId.isEmpty) {
+        if (Get.isRegistered<TourStateService>()) {
+          tourId = Get.find<TourStateService>().currentTourId ?? '';
+        }
+      }
+
+      var isExtraPickup = false;
+      if (tourId.isNotEmpty && Get.isRegistered<TodaysTaskController>()) {
+        final todaysTaskController = Get.find<TodaysTaskController>();
+        final tours = todaysTaskController.todaySchedule.value?.data?.tours ?? [];
+        final tour = tours.firstWhereOrNull((t) => t.id?.toString() == tourId);
+        isExtraPickup = tour?.allDoctors.any((d) => d.isExtraPickup) ?? false;
+      }
+
       // Navigate to image submission screen with drop point report flags
       Get.toNamed(
         AppRoutes.imageSubmission,
@@ -228,7 +250,8 @@ class LocationCodeController extends GetxController {
           'dropLocationName': dropLocationName ?? '',
           'dropLocationId': dropLocationId ?? '',
           'reportText': 'Drop point location issue', // Default report text
-          'tourId': '', // No tour ID for drop point reports
+          'tourId': tourId,
+          'isExtraPickup': isExtraPickup,
         },
       );
     } catch (e) {

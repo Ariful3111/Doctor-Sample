@@ -211,6 +211,12 @@ class _TourDrListScreenState extends State<TourDrListScreen> {
             return !_tourState.completedDoctorIds.contains(id);
           }).toList();
 
+          final appointmentIdForTour =
+              _todaysController.todaySchedule.value?.data?.getAppointmentIdForTour(
+                    int.tryParse(_tourId ?? ''),
+                  ) ??
+                  '';
+
           return SingleChildScrollView(
             padding: EdgeInsets.all(16.w),
             child: Column(
@@ -257,6 +263,9 @@ class _TourDrListScreenState extends State<TourDrListScreen> {
                                 arguments: {
                                   'doctorId': d.id,
                                   'tourId': tour.id,
+                                  'appointmentId': appointmentIdForTour,
+                                  'isExtraPickup': d.isExtraPickup,
+                                  'extraPickupId': d.extraPickupId,
                                   'doctorData': {
                                     'name': d.name,
                                     'image': '',

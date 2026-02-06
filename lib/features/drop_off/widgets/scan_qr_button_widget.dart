@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import '../../../core/themes/app_colors.dart';
+import '../../../core/services/tour_state_service.dart';
+import '../../dashboard/controllers/todays_task_controller.dart';
 import '../controllers/drop_location_controller.dart';
 
 class ScanQRButtonWidget extends GetView<DropLocationController> {
@@ -128,9 +130,29 @@ class ScanQRButtonWidget extends GetView<DropLocationController> {
               width: double.infinity,
               child: OutlinedButton(
                 onPressed: () {
+                  String? tourId = controller.tourId;
+                  if (tourId.isEmpty) {
+                    if (Get.isRegistered<TourStateService>()) {
+                      tourId = Get.find<TourStateService>().currentTourId ?? '';
+                    }
+                  }
+
+                  var isExtraPickup = false;
+                  if (tourId.isNotEmpty &&
+                      Get.isRegistered<TodaysTaskController>()) {
+                    final todaysTaskController = Get.find<TodaysTaskController>();
+                    final tours =
+                        todaysTaskController.todaySchedule.value?.data?.tours ??
+                        [];
+                    final tour =
+                        tours.firstWhereOrNull((t) => t.id?.toString() == tourId);
+                    isExtraPickup =
+                        tour?.allDoctors.any((d) => d.isExtraPickup) ?? false;
+                  }
+
                   Get.toNamed(
                     AppRoutes.report,
-                    arguments: {'isDropPoint': true},
+                    arguments: {'isDropPoint': true, 'isExtraPickup': isExtraPickup},
                   );
                 },
                 style: OutlinedButton.styleFrom(

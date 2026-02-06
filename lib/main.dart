@@ -1,6 +1,5 @@
 import 'package:doctor_app/core/di/dependency_injection.dart';
 import 'package:doctor_app/core/routes/app_routes.dart';
-import 'package:doctor_app/core/services/tour_state_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
@@ -16,7 +15,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await DependencyInjection.init();
   final storage = Get.find<StorageService>();
-  final tourStateService = Get.find<TourStateService>();
+  //final tourStateService = Get.find<TourStateService>();
   final dynamic storedId = await storage.read(key: "id");
   final int userID = (storedId is int)
       ? storedId
