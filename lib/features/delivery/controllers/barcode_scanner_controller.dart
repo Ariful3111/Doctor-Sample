@@ -1,4 +1,5 @@
 import 'package:doctor_app/core/services/tour_state_service.dart';
+import 'package:doctor_app/features/drop_off/controllers/drop_location_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
@@ -402,7 +403,7 @@ class BarcodeScannerController extends GetxController {
     // Stop scanning and cleanup
     stopScanning();
     isProcessing.value = false;
-
+    Get.find<DropLocationController>().isScanning.value=false;
     final navigator = Get.key.currentState;
     if (navigator != null && navigator.canPop()) {
       navigator.pop();

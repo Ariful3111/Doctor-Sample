@@ -72,25 +72,31 @@ class DropLocationController extends GetxController {
   }
 
   /// Start QR code scanning
-  void startQRScanning() {
+  Future<void> startQRScanning() async {
+    if (isScanning.value) return;
     isScanning.value = true;
 
-    // Show info message
-    SnackbarUtils.showInfo(
-      title: 'qr_scanner'.tr,
-      message: 'point_camera_to_scan'.tr,
-    );
+    try {
+      SnackbarUtils.showInfo(
+        title: 'qr_scanner'.tr,
+        message: 'point_camera_to_scan'.tr,
+      );
 
-    // Navigate to real barcode scanner for drop location
-    Get.toNamed(AppRoutes.barcodeScanner, arguments: {'isDropLocation': true});
+      await Get.toNamed(
+        AppRoutes.barcodeScanner,
+        arguments: {'isDropLocation': true},
+      );
+    } finally {
+      isScanning.value = false;
+    }
   }
 
   /// Handle scanned QR code result
-  void onQRCodeScanned(String qrCode) async {
+  Future<bool> onQRCodeScanned(String qrCode) async {
     // Prevent double validation
     if (isValidating.value) {
       print('⚠️ Validation already in progress, ignoring duplicate scan');
-      return;
+      return false;
     }
 
     scannedQRCode.value = qrCode;
@@ -101,19 +107,19 @@ class DropLocationController extends GetxController {
     print('📷 QR Code Scanned at: $scanTime');
     print('📍 QR Code: $qrCode');
 
-    await _validateLocation();
+    return await _validateLocation();
   }
 
   /// Validate scanned location by NAME ONLY and check operating hours
   /// Verification uses only the location name, not numeric IDs
-  Future<void> _validateLocation() async {
+  Future<bool> _validateLocation() async {
     if (scannedQRCode.value.isEmpty) {
       isLocationValid.value = false;
       SnackbarUtils.showError(
         title: 'invalid_location'.tr,
         message: 'not_valid_drop_location'.tr,
       );
-      return;
+      return false;
     }
 
     // Set validation flag
@@ -152,7 +158,7 @@ class DropLocationController extends GetxController {
           title: 'invalid_location'.tr,
           message: 'not_valid_drop_location'.tr,
         );
-        return;
+        return false;
       }
 
       print('📍 Extracted location name from QR: "$locationName"');
@@ -184,7 +190,7 @@ class DropLocationController extends GetxController {
           title: 'error'.tr,
           message: 'driver_id_not_found'.tr,
         );
-        return;
+        return false;
       }
 
       // Try to find location by name with driver authentication
@@ -220,7 +226,7 @@ class DropLocationController extends GetxController {
           title: 'location_verification_failed'.tr,
           message: 'location_verification_failed'.tr,
         );
-        return;
+        return false;
       }
 
       // Location found - extract total samples count
@@ -268,8 +274,10 @@ class DropLocationController extends GetxController {
         title: 'location_verified'.tr,
         message: 'location_verified'.tr,
       );
+      return true;
     } finally {
       // Reset validation flag
+      isCheckingTime.value = false;
       isValidating.value = false;
     }
   }

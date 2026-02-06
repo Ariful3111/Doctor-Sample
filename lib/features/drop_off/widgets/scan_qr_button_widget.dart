@@ -63,9 +63,7 @@ class ScanQRButtonWidget extends GetView<DropLocationController> {
               ),
               textAlign: TextAlign.center,
             ),
-
             SizedBox(height: 32.h),
-
             // Scan Button
             SizedBox(
               width: double.infinity,

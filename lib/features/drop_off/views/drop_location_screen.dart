@@ -39,22 +39,8 @@ class DropLocationScreen extends GetView<DropLocationController> {
             backgroundColor: AppColors.primary,
             foregroundColor: AppColors.textOnPrimary,
             elevation: 0,
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back),
-              onPressed: () {
-                // Reset to today_task mode when going back
-                try {
-                  final todaysTaskController = Get.find<TodaysTaskController>();
-                  todaysTaskController.switchToTodayTask();
-                } catch (e) {
-                  // Controller not found
-                }
-                Get.back();
-              },
-              iconSize: isTablet ? 36 : 24,
-              padding: isTablet ? const EdgeInsets.all(12) : null,
-            ),
             toolbarHeight: appBarHeight,
+            automaticallyImplyLeading: false,
           ),
         ),
         body: Column(

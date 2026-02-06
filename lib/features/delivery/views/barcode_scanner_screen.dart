@@ -22,15 +22,19 @@ class BarcodeScannerScreen extends StatefulWidget {
 class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
   late MobileScannerController cameraController;
   bool _hasNavigatedBack = false; // Prevent multiple back navigation
+  bool _isShowingInvalidQrDialog = false;
+  bool _isDropLocationMode = false;
   late Worker _processingWorker;
 
   @override
   void initState() {
     super.initState();
+    _isDropLocationMode = Get.arguments?['isDropLocation'] == true;
     cameraController = MobileScannerController();
     final controller = Get.find<BarcodeScannerController>();
     _processingWorker = ever<bool>(controller.isProcessing, (processing) async {
       if (!mounted) return;
+      if (_isDropLocationMode) return;
       try {
         if (processing) {
           await cameraController.stop();
@@ -147,49 +151,55 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
             ProgressHeaderWidget(isDropLocation: isDropLocation),
           Expanded(
             flex: 3,
-            child: MobileScanner(
-              controller: cameraController,
-              onDetect: (capture) {
-                if (controller.isProcessing.value) return;
-                final List<Barcode> barcodes = capture.barcodes;
-                for (final barcode in barcodes) {
-                  // Drop location mode - handle differently
-                  if (isDropLocation &&
-                      controller.isProcessing.value == false &&
-                      !_hasNavigatedBack) {
-                    controller.isProcessing.value = true;
-                    _hasNavigatedBack = true; // Mark as navigated
+            child: Obx(
+              () => Stack(
+                children: [
+                  MobileScanner(
+                    controller: cameraController,
+                    onDetect: (capture) {
+                      if (controller.isProcessing.value) return;
+                      if (isDropLocation && _isShowingInvalidQrDialog) return;
+                      final List<Barcode> barcodes = capture.barcodes;
+                      for (final barcode in barcodes) {
+                        // Drop location mode - handle differently
+                        if (isDropLocation &&
+                            controller.isProcessing.value == false &&
+                            !_hasNavigatedBack &&
+                            !_isShowingInvalidQrDialog) {
+                          controller.isProcessing.value = true;
+                          print(
+                            '📷 Drop location QR detected: ${barcode.rawValue}',
+                          );
+                          final qrCode = barcode.rawValue ?? '';
+                          _handleDropLocationQrScan(
+                            qrCode,
+                            context,
+                            controller,
+                          );
+                          return;
+                        }
 
-                    print('📷 Drop location QR detected: ${barcode.rawValue}');
-                    final qrCode = barcode.rawValue ?? '';
-
-                    // Schedule navigation for next frame to ensure clean closure
-                    SchedulerBinding.instance.addPostFrameCallback((_) {
-                      if (mounted) {
-                        print('🔙 Closing scanner and returning to drop point');
-                        Navigator.of(context).pop();
-
-                        // Validate after navigation
-                        Future.delayed(const Duration(milliseconds: 100), () {
-                          if (Get.isRegistered<DropLocationController>()) {
-                            Get.find<DropLocationController>().onQRCodeScanned(
-                              qrCode,
-                            );
-                          }
-                          Future.delayed(const Duration(seconds: 2), () {
-                            controller.isProcessing.value = false;
-                          });
-                        });
+                        // Regular pickup mode
+                        controller.onBarcodeDetected(
+                          barcode.rawValue ?? '',
+                          context,
+                        );
                       }
-                    });
-
-                    return;
-                  }
-
-                  // Regular pickup mode
-                  controller.onBarcodeDetected(barcode.rawValue ?? '', context);
-                }
-              },
+                    },
+                  ),
+                  if (isDropLocation && controller.isProcessing.value)
+                    Positioned.fill(
+                      child: IgnorePointer(
+                        child: Container(
+                          color: Colors.black.withValues(alpha: 0.35),
+                          child: const Center(
+                            child: CircularProgressIndicator(),
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
             ),
           ),
           // Only show scanned samples list for pickup mode
@@ -226,5 +236,61 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
         ],
       ),
     );
+  }
+
+  Future<void> _showInvalidQrDialog(BuildContext context) async {
+    await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('invalid_location'.tr),
+        content: Text('not_valid_drop_location'.tr),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text('ok'.tr),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _handleDropLocationQrScan(
+    String qrCode,
+    BuildContext context,
+    BarcodeScannerController controller,
+  ) {
+    Future(() async {
+      try {
+        var valid = false;
+        if (Get.isRegistered<DropLocationController>()) {
+          valid = await Get.find<DropLocationController>().onQRCodeScanned(
+            qrCode,
+          );
+        }
+        if (!mounted) return;
+
+        if (valid) {
+          controller.isProcessing.value = false;
+          _hasNavigatedBack = true;
+          SchedulerBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              print('🔙 Closing scanner and returning to drop point');
+              Navigator.of(context).pop();
+            }
+          });
+          return;
+        }
+
+        controller.isProcessing.value = false;
+        if (_isShowingInvalidQrDialog) return;
+        _isShowingInvalidQrDialog = true;
+        await _showInvalidQrDialog(context);
+      } finally {
+        if (mounted) {
+          _isShowingInvalidQrDialog = false;
+          controller.isProcessing.value = false;
+        }
+      }
+    });
   }
 }

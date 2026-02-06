@@ -39,7 +39,7 @@ class BottomNavigationWidget extends GetView<DropLocationController> {
                     } catch (e) {
                       // Controller not found
                     }
-                    Get.back();
+                    Navigator.pop(context);
                   },
                   style: TextButton.styleFrom(
                     foregroundColor: AppColors.textSecondary,
