@@ -92,15 +92,15 @@ class PickupConfirmationController extends GetxController {
       await tourStateService.incrementSamplesSubmitted();
 
       // If this is an extra pickup, complete it
-      if (isExtraPickup) {
-        print('Step 1.5: Extra Pickup detected - calling complete API...');
-        final extraPickupCompleted = await _completeExtraPickup();
-        if (extraPickupCompleted) {
-          print('Step 1.5: Extra Pickup completed successfully');
-        } else {
-          print('Step 1.5: Extra Pickup completion failed');
-        }
-      }
+      // if (isExtraPickup) {
+      //   print('Step 1.5: Extra Pickup detected - calling complete API...');
+      //   final extraPickupCompleted = await _completeExtraPickup();
+      //   if (extraPickupCompleted) {
+      //     print('Step 1.5: Extra Pickup completed successfully');
+      //   } else {
+      //     print('Step 1.5: Extra Pickup completion failed');
+      //   }
+      // }
 
       // Mark doctor as completed
       print('Step 2: Marking doctor as completed...');
@@ -401,69 +401,69 @@ class PickupConfirmationController extends GetxController {
   }
 
   /// Complete Extra Pickup
-  Future<bool> _completeExtraPickup() async {
-    print('========================================');
-    print('COMPLETE EXTRA PICKUP API STARTING');
-    print('========================================');
-    try {
-      // Use extraPickupId that was passed from navigation
-      if (extraPickupId == null) {
-        print('❌ No extraPickupId found');
-        return false;
-      }
+  // Future<bool> _completeExtraPickup() async {
+  //   print('========================================');
+  //   print('COMPLETE EXTRA PICKUP API STARTING');
+  //   print('========================================');
+  //   try {
+  //     // Use extraPickupId that was passed from navigation
+  //     if (extraPickupId == null) {
+  //       print('❌ No extraPickupId found');
+  //       return false;
+  //     }
 
-      print('✅ extraPickupId: $extraPickupId');
+  //     print('✅ extraPickupId: $extraPickupId');
 
-      // Step 1: Call extra-pickups complete API
-      print('Step 1: Calling extra-pickups complete API...');
-      final completeUrl = Uri.parse(
-        '${NetworkPaths.baseUrl}${NetworkPaths.extraPickupComplete(extraPickupId.toString())}',
-      );
+  //     // Step 1: Call extra-pickups complete API
+  //     print('Step 1: Calling extra-pickups complete API...');
+  //     final completeUrl = Uri.parse(
+  //       '${NetworkPaths.baseUrl}${NetworkPaths.extraPickupComplete(extraPickupId.toString())}',
+  //     );
 
-      print('Complete Extra Pickup URL: $completeUrl');
+  //     print('Complete Extra Pickup URL: $completeUrl');
 
-      // Get current date for status update
-      final now = DateTime.now();
-      final completedDate =
-          '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+  //     // Get current date for status update
+  //     final now = DateTime.now();
+  //     final completedDate =
+  //         '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
 
-      final body = jsonEncode({
-        'status': 'completed',
-        'completedDate': completedDate,
-      });
+  //     final body = jsonEncode({
+  //       'status': 'completed',
+  //       'completedDate': completedDate,
+  //     });
 
-      print('Complete Request Body: $body');
+  //     print('Complete Request Body: $body');
 
-      try {
-        final completeResponse = await http.put(
-          completeUrl,
-          headers: {'Content-Type': 'application/json'},
-          body: body,
-        );
+  //     try {
+  //       final completeResponse = await http.put(
+  //         completeUrl,
+  //         headers: {'Content-Type': 'application/json'},
+  //         body: body,
+  //       );
 
-        print('Complete Response Status: ${completeResponse.statusCode}');
-        print('Complete Response Body: ${completeResponse.body}');
+  //       print('Complete Response Status: ${completeResponse.statusCode}');
+  //       print('Complete Response Body: ${completeResponse.body}');
 
-        if (completeResponse.statusCode == 200 ||
-            completeResponse.statusCode == 201) {
-          print('✅ EXTRA PICKUP COMPLETED SUCCESSFULLY');
-          return true;
-        } else {
-          print(
-            '❌ EXTRA PICKUP COMPLETE API FAILED: ${completeResponse.statusCode}',
-          );
-          return false;
-        }
-      } catch (e) {
-        print('❌ EXCEPTION IN COMPLETE EXTRA PICKUP');
-        print('Error: $e');
-        return false;
-      }
-    } catch (e, stackTrace) {
-      print('❌ EXCEPTION IN COMPLETE EXTRA PICKUP');
-      print('Error: $e');
-      print('Stack Trace: $stackTrace');
-      return false;
-    }
-  }
+  //       if (completeResponse.statusCode == 200 ||
+  //           completeResponse.statusCode == 201) {
+  //         print('✅ EXTRA PICKUP COMPLETED SUCCESSFULLY');
+  //         return true;
+  //       } else {
+  //         print(
+  //           '❌ EXTRA PICKUP COMPLETE API FAILED: ${completeResponse.statusCode}',
+  //         );
+  //         return false;
+  //       }
+  //     } catch (e) {
+  //       print('❌ EXCEPTION IN COMPLETE EXTRA PICKUP');
+  //       print('Error: $e');
+  //       return false;
+  //     }
+  //   } catch (e, stackTrace) {
+  //     print('❌ EXCEPTION IN COMPLETE EXTRA PICKUP');
+  //     print('Error: $e');
+  //     print('Stack Trace: $stackTrace');
+  //     return false;
+  //   }
+  // }
 }

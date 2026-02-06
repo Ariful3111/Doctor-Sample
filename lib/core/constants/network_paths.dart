@@ -25,9 +25,6 @@ class NetworkPaths {
   static String appointmentsByDriver(String driverId, String date) =>
       '/api/appointments/driver/$driverId/$date';
 
-  // Extra Pickups APIs
-  static String extraPickupComplete(String extraPickupId) =>
-      '/api/extra-pickups/$extraPickupId/complete';
 
   // Drop Point APIs
   static const String dropPointSubmit = '/api/submit';

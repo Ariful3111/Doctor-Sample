@@ -86,7 +86,7 @@ class NotificationsController extends GetxController {
           // Filter to show only pending status
           final pendingOnly = data.where((pickup) {
             final status = pickup['status']?.toString().toLowerCase() ?? '';
-            return status == 'pending';
+            return status == 'pending' || status == 'expired';
           }).toList();
 
           // Cache extra pickups by ID for later lookup
