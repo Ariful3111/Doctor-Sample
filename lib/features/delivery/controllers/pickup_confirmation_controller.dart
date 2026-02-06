@@ -115,7 +115,7 @@ class PickupConfirmationController extends GetxController {
       }
 
       print('Step 3: Checking if tour is complete...');
-      final aptIdInt = int.tryParse(appointmentId.value);
+      int? aptIdInt = int.tryParse(appointmentId.value);
       String? tourId = tourStateService.currentTourId;
       if (tourId == null || tourId.isEmpty) {
         final storage = Get.find<StorageService>();
@@ -137,6 +137,25 @@ class PickupConfirmationController extends GetxController {
           tourId = match?.tour?.id?.toString();
         }
       }
+
+      if (aptIdInt == null) {
+        aptIdInt = tourStateService.currentAppointmentId;
+      }
+
+      if (aptIdInt == null && tourId != null && tourId.isNotEmpty) {
+        if (Get.isRegistered<TodaysTaskController>()) {
+          final todaysTaskController = Get.find<TodaysTaskController>();
+          if (todaysTaskController.todaySchedule.value == null) {
+            await todaysTaskController.refreshTasks();
+          }
+          final fromTour = int.tryParse(
+            todaysTaskController.todaySchedule.value?.data
+                    ?.getAppointmentIdForTour(int.tryParse(tourId)) ??
+                '',
+          );
+          aptIdInt = fromTour;
+        }
+      }
       final remainingDoctors = await _getRemainingDoctorsCount(
         tourId: tourId,
         tourStateService: tourStateService,
@@ -147,7 +166,16 @@ class PickupConfirmationController extends GetxController {
 
       if (shouldEndTour) {
         print('🏁 Last doctor detected. Calling endTour API...');
-        await tourStateService.endTour(appointmentId: aptIdInt, tourId: tourId);
+        final ended = await tourStateService.endTour(
+          appointmentId: aptIdInt,
+          tourId: tourId,
+        );
+        if (!ended) {
+          SnackbarUtils.showError(
+            title: 'Error',
+            message: 'Failed to end tour. Please try again.',
+          );
+        }
         if (Get.isRegistered<TodaysTaskController>()) {
           await Get.find<TodaysTaskController>().refreshTasks();
         }

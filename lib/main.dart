@@ -28,11 +28,6 @@ void main() async {
 
   if (userID == 0) {
     initialRoute = AppPages.initial;
-  } else if (tourStateService.hasActiveTour) {
-    // User has active tour - navigate directly to tour
-    initialRoute = AppRoutes.tourDrList;
-    initialArguments = {'taskId': tourStateService.currentTourId};
-    print('🚗 Active tour found: ${tourStateService.currentTourId}');
   } else {
     initialRoute = AppRoutes.todaysTask;
   }

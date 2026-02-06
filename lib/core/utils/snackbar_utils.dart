@@ -16,6 +16,32 @@ class SnackbarUtils {
     double? borderRadius,
   }) {
     try {
+      final overlayContext = Get.overlayContext;
+      final overlayState = Get.key.currentState?.overlay;
+      if (overlayContext == null && overlayState == null) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          try {
+            final delayedOverlayContext = Get.overlayContext;
+            final delayedOverlayState = Get.key.currentState?.overlay;
+            if (delayedOverlayContext == null && delayedOverlayState == null) {
+              return;
+            }
+            showSafe(
+              title: title,
+              message: message,
+              position: position,
+              backgroundColor: backgroundColor,
+              colorText: colorText,
+              duration: duration,
+              icon: icon,
+              margin: margin,
+              borderRadius: borderRadius,
+            );
+          } catch (_) {}
+        });
+        return;
+      }
+
       // Close any existing snackbar safely
       if (Get.isSnackbarOpen) {
         Get.closeCurrentSnackbar();

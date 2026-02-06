@@ -15,25 +15,27 @@ class PickupConfirmationButtonsWidget
       child: Row(
         children: [
           Expanded(
-            child: TextButton(
-              onPressed: controller.isSubmitting.value
-                  ? null
-                  : controller.goBack,
-              style: TextButton.styleFrom(
-                foregroundColor: controller.isSubmitting.value
-                    ? AppColors.textSecondary.withValues(alpha:  0.5)
-                    : AppColors.textSecondary,
-                padding: EdgeInsets.symmetric(vertical: 12.h),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8.r),
-                  side: BorderSide(
-                    color: controller.isSubmitting.value
-                        ? AppColors.border.withValues(alpha:  0.5)
-                        : AppColors.border,
+            child: Obx(
+              () => TextButton(
+                onPressed: controller.isSubmitting.value
+                    ? null
+                    : controller.goBack,
+                style: TextButton.styleFrom(
+                  foregroundColor: controller.isSubmitting.value
+                      ? AppColors.textSecondary.withValues(alpha: 0.5)
+                      : AppColors.textSecondary,
+                  padding: EdgeInsets.symmetric(vertical: 12.h),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8.r),
+                    side: BorderSide(
+                      color: controller.isSubmitting.value
+                          ? AppColors.border.withValues(alpha: 0.5)
+                          : AppColors.border,
+                    ),
                   ),
                 ),
+                child: Text('back'.tr),
               ),
-              child: Text('back'.tr),
             ),
           ),
           SizedBox(width: 16.w),

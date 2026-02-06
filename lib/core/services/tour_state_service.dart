@@ -26,6 +26,7 @@ class TourStateService extends GetxService {
   static const _visitedDoctorsKey = 'visited_doctors';
   static const _samplesSubmittedKey = 'samples_submitted_count';
   static const _tourIntentionalExitKey = 'tour_intentional_exit';
+  static const _activeAppointmentIdKey = 'active_appointment_id';
 
   // Reactive state
   final RxString? activeTourId = RxString('');
@@ -89,6 +90,9 @@ class TourStateService extends GetxService {
     );
     await _storage.write(key: _tourStartDateKey, value: date);
     await _storage.write(key: 'appointment_start_date', value: date);
+    if (appointmentId != null) {
+      await _storage.write(key: _activeAppointmentIdKey, value: appointmentId);
+    }
     await _storage.write(key: _tourIntentionalExitKey, value: false);
     print('Tour started: $tourId, Date: $date, Time: ${_formatHHmm(now)}');
     activeTourId!.value = tourId;
@@ -107,8 +111,8 @@ class TourStateService extends GetxService {
   // ============================
   // TOUR END (SINGLE ENTRY)
   // ============================
-  Future<void> endTour({int? appointmentId, String? tourId}) async {
-    if (_ending) return;
+  Future<bool> endTour({int? appointmentId, String? tourId}) async {
+    if (_ending) return false;
     _ending = true;
 
     try {
@@ -122,7 +126,7 @@ class TourStateService extends GetxService {
           : (idFromState.isNotEmpty ? idFromState : idFromStorage);
 
       if (effectiveTourId.isEmpty || appointmentId == null) {
-        return;
+        return false;
       }
 
       final ok = await _callEndTourAPI(
@@ -130,12 +134,13 @@ class TourStateService extends GetxService {
         appointmentId: appointmentId,
       );
       if (!ok) {
-        return;
+        return false;
       }
 
       await _storage.write(key: _tourIntentionalExitKey, value: true);
       tourIntentionalExit.value = true;
       _clearLocalState();
+      return true;
     } finally {
       _ending = false;
     }
@@ -154,6 +159,7 @@ class TourStateService extends GetxService {
     _storage.remove(key: _completedDoctorsKey);
     _storage.remove(key: _visitedDoctorsKey);
     _storage.remove(key: _samplesSubmittedKey);
+    _storage.remove(key: _activeAppointmentIdKey);
 
     activeTourId!.value = '';
     tourStartTime.value = null;
@@ -162,6 +168,9 @@ class TourStateService extends GetxService {
     visitedDoctorIds.clear();
     samplesSubmittedCount.value = 0;
   }
+
+  int? get currentAppointmentId =>
+      _storage.read<int>(key: _activeAppointmentIdKey);
 
   // ============================
   // DOCTOR STATE
@@ -261,7 +270,9 @@ class TourStateService extends GetxService {
         value: effectiveStartDate,
       );
     }
-
+print(
+      'Ending tour: $tourId, Date: $effectiveStartDate, End Time: $endTimeToSend, Late Flag: $lateFlag, Appointment ID: $appointmentId',
+    );
     final body = {
       'tourId': int.tryParse(tourId) ?? tourId,
       'date': effectiveStartDate,

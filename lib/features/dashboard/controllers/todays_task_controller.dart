@@ -28,10 +28,10 @@ class TodaysTaskController extends GetxController {
     loadTodaysTasks();
   }
 
-  void loadTodaysTasks() {
+  Future<void> loadTodaysTasks() async {
     print('📋 [TodaysTask] Loading tasks...');
     _isLoading.value = true;
-    _loadTodaysTasksAsync();
+    await _loadTodaysTasksAsync();
   }
 
   /// Load today's tasks with proper async/await
@@ -165,7 +165,7 @@ class TodaysTaskController extends GetxController {
 
   /// Refresh tasks
   Future<void> refreshTasks() async {
-    loadTodaysTasks();
+    await loadTodaysTasks();
   }
 
   /// Navigate to tour details

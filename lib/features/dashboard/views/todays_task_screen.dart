@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import '../../../core/themes/app_colors.dart';
-import '../../../core/services/tour_state_service.dart';
 import '../controllers/todays_task_controller.dart';
 import '../widgets/custom_app_bar_widget.dart';
 import '../widgets/date_header_widget.dart';
@@ -115,37 +114,16 @@ class _TodaysTaskScreenState extends State<TodaysTaskScreen> {
                   // Get all tours and filter out completed ones
                   final allTours = scheduleModel?.data?.tours ?? [];
                   final appointments = scheduleModel?.data?.appointments ?? [];
-                  final tourStateService = Get.find<TourStateService>();
 
                   // Filter out completed appointments and tours with all doctors completed
                   final activeTours = allTours.where((tour) {
-                    // Find corresponding appointment
-                    final appointment = appointments.firstWhere(
+                    final appointment = appointments.firstWhereOrNull(
                       (apt) => apt.tour?.id == tour.id,
-                      orElse: () => appointments.first,
                     );
-                    // Only show if status is not 'completed'
-                    if (appointment.status?.toLowerCase() == 'completed') {
+                    if (appointment?.status?.toLowerCase() == 'completed') {
                       return false;
                     }
-
-                    // Check if all doctors in this tour are completed
-                    final allDoctors = tour.allDoctors;
-                    if (allDoctors.isEmpty) return true;
-
-                    // Count how many doctors are completed
-                    final completedDoctorsInTour = allDoctors.where((doctor) {
-                      final doctorId = doctor.id?.toString() ?? '';
-                      return tourStateService.completedDoctorIds.contains(
-                        doctorId,
-                      );
-                    }).length;
-
-                    // Hide tour only if ALL doctors are completed
-                    final allDoctorsCompleted =
-                        completedDoctorsInTour == allDoctors.length &&
-                        allDoctors.length > 0;
-                    return !allDoctorsCompleted;
+                    return true;
                   }).toList();
 
                   final tours = activeTours;
