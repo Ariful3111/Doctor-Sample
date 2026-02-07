@@ -151,8 +151,7 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
             ProgressHeaderWidget(isDropLocation: isDropLocation),
           Expanded(
             flex: 3,
-            child: Obx(
-              () => Stack(
+            child: Stack(
                 children: [
                   MobileScanner(
                     controller: cameraController,
@@ -201,7 +200,7 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
                 ],
               ),
             ),
-          ),
+          
           // Only show scanned samples list for pickup mode
           if (!isDropLocation)
             const Expanded(flex: 2, child: ScannedSamplesListWidget()),

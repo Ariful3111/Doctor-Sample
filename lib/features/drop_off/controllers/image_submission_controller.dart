@@ -186,7 +186,9 @@ class ImageSubmissionController extends GetxController {
     return remaining;
   }
 
-  Future<String> _resolveEffectiveTourId(TourStateService tourStateService) async {
+  Future<String> _resolveEffectiveTourId(
+    TourStateService tourStateService,
+  ) async {
     var effectiveTourId = tourId.trim();
     if (effectiveTourId.isEmpty) {
       effectiveTourId = tourStateService.currentTourId ?? '';
@@ -216,7 +218,9 @@ class ImageSubmissionController extends GetxController {
     return aptIdInt;
   }
 
-  Future<bool> _isLastDoctorOfCurrentTour(TourStateService tourStateService) async {
+  Future<bool> _isLastDoctorOfCurrentTour(
+    TourStateService tourStateService,
+  ) async {
     final effectiveTourId = await _resolveEffectiveTourId(tourStateService);
     if (effectiveTourId.isEmpty) return false;
 
@@ -427,6 +431,12 @@ class ImageSubmissionController extends GetxController {
   /// Handle Submit button press
   /// Validates image selection and submits the proof image
   Future<void> onSubmitPressed() async {
+    try {
+      final todaysTaskController = Get.find<TodaysTaskController>();
+      todaysTaskController.switchToTodayTask();
+    } catch (e) {
+      // Controller not found
+    }
     if (!_canSubmit.value) {
       SnackbarUtils.showWarning(
         title: 'no_image'.tr,
@@ -497,11 +507,11 @@ class ImageSubmissionController extends GetxController {
       }
 
       // If coming from drop point report, submit to lab problem report API with image
-      // if (isDropPointReport) {
-      //   print('📋 Calling _submitLabProblemReport with driverId: $driverId');
-      //   await _submitLabProblemReport(imageUrl ?? '', driverId);
-      //   return;
-      // }
+      if (isDropPointReport) {
+        print('📋 Calling _submitLabProblemReport with driverId: $driverId');
+        await _submitLabProblemReport(imageUrl ?? '', driverId);
+        return;
+      }
 
       final now = DateTime.now();
       final dateString = now.toIso8601String().split('T')[0]; // YYYY-MM-DD
@@ -998,116 +1008,116 @@ class ImageSubmissionController extends GetxController {
     }
   }
 
-  /// Submit lab (drop point) problem report with image to backend
-  // Future<void> _submitLabProblemReport(String imageUrl, int driverId) async {
-  //   try {
-  //     // Create multipart request for file upload
-  //     var request = http.MultipartRequest(
-  //       'POST',
-  //       Uri.parse('${NetworkPaths.baseUrl}${NetworkPaths.problemReportLab}'),
-  //     );
+  // Submit lab (drop point) problem report with image to backend
+  Future<void> _submitLabProblemReport(String imageUrl, int driverId) async {
+    try {
+      // Create multipart request for file upload
+      var request = http.MultipartRequest(
+        'POST',
+        Uri.parse('${NetworkPaths.baseUrl}${NetworkPaths.problemReportLab}'),
+      );
 
-  //     final reportTextToSend = reportText.isNotEmpty
-  //         ? reportText
-  //         : 'Drop point location issue';
+      final reportTextToSend = reportText.isNotEmpty
+          ? reportText
+          : 'Drop point location issue';
 
-  //     // Get current date and time
-  //     final now = DateTime.now();
-  //     final dateString = now.toIso8601String().split('T')[0]; // YYYY-MM-DD
-  //     final timeString =
-  //         '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}'; // HH:MM
+      // Get current date and time
+      final now = DateTime.now();
+      final dateString = now.toIso8601String().split('T')[0]; // YYYY-MM-DD
+      final timeString =
+          '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}'; // HH:MM
 
-  //     // Debug: Log what we're about to send
-  //     print('📤 Lab Report Data:');
-  //     print('   driverId: $driverId');
-  //     print('   text: $reportTextToSend');
-  //     print('   image path: ${_selectedImagePath.value}');
-  //     print('   date: $dateString');
-  //     print('   dropTime: $timeString');
-  //     print('   ⚠️ isExtraPickup (member variable): $isExtraPickup');
-  //     print('   ⚠️ ExtraTour should be: ${isExtraPickup ? 1 : 0}');
+      // Debug: Log what we're about to send
+      print('📤 Lab Report Data:');
+      print('   driverId: $driverId');
+      print('   text: $reportTextToSend');
+      print('   image path: ${_selectedImagePath.value}');
+      print('   date: $dateString');
+      print('   dropTime: $timeString');
+      print('   ⚠️ isExtraPickup (member variable): $isExtraPickup');
+      print('   ⚠️ ExtraTour should be: ${isExtraPickup ? 1 : 0}');
 
-  //     // Add form fields
-  //     request.fields['driverId'] = driverId.toString();
-  //     request.fields['text'] = reportTextToSend;
-  //     request.fields['ExtraTour'] = isExtraPickup ? '1' : '0';
-  //     request.fields['date'] = dateString;
-  //     request.fields['dropTime'] = timeString;
+      // Add form fields
+      request.fields['driverId'] = driverId.toString();
+      request.fields['text'] = reportTextToSend;
+      request.fields['ExtraTour'] = isExtraPickup ? '1' : '0';
+      request.fields['date'] = dateString;
+      request.fields['dropTime'] = timeString;
 
-  //     print('📋 Lab Report Request fields: ${request.fields}');
-  //     print(
-  //       '📋 Lab Report Request fields keys: ${request.fields.keys.toList()}',
-  //     );
-  //     print(
-  //       '📋 ExtraTour field value (BEING SENT): "${request.fields['ExtraTour']}"',
-  //     );
+      print('📋 Lab Report Request fields: ${request.fields}');
+      print(
+        '📋 Lab Report Request fields keys: ${request.fields.keys.toList()}',
+      );
+      print(
+        '📋 ExtraTour field value (BEING SENT): "${request.fields['ExtraTour']}"',
+      );
 
-  //     // Add image file if path is available for lab report
-  //     if (_selectedImagePath.value.isNotEmpty) {
-  //       final file = File(_selectedImagePath.value);
-  //       if (await file.exists()) {
-  //         request.files.add(
-  //           await http.MultipartFile.fromPath(
-  //             'image',
-  //             file.path,
-  //             contentType: MediaType('image', 'jpeg'),
-  //           ),
-  //         );
-  //         print('📸 Lab report image file added: ${file.path}');
-  //       } else {
-  //         print(
-  //           '⚠️ Lab report image file does not exist: ${_selectedImagePath.value}',
-  //         );
-  //       }
-  //     } else {
-  //       print('⚠️ No image path provided for lab report');
-  //     }
+      // Add image file if path is available for lab report
+      if (_selectedImagePath.value.isNotEmpty) {
+        final file = File(_selectedImagePath.value);
+        if (await file.exists()) {
+          request.files.add(
+            await http.MultipartFile.fromPath(
+              'image',
+              file.path,
+              contentType: MediaType('image', 'jpeg'),
+            ),
+          );
+          print('📸 Lab report image file added: ${file.path}');
+        } else {
+          print(
+            '⚠️ Lab report image file does not exist: ${_selectedImagePath.value}',
+          );
+        }
+      } else {
+        print('⚠️ No image path provided for lab report');
+      }
 
-  //     print('📋 Lab Report Request fields: ${request.fields}');
-  //     print('📁 Lab Report Request files count: ${request.files.length}');
+      print('📋 Lab Report Request fields: ${request.fields}');
+      print('📁 Lab Report Request files count: ${request.files.length}');
 
-  //     // Send request
-  //     final response = await request.send();
-  //     final responseBody = await response.stream.bytesToString();
+      // Send request
+      final response = await request.send();
+      final responseBody = await response.stream.bytesToString();
 
-  //     print('📤 Lab Problem Report Response Status: ${response.statusCode}');
-  //     print('📤 Lab Problem Report Response Body: $responseBody');
+      print('📤 Lab Problem Report Response Status: ${response.statusCode}');
+      print('📤 Lab Problem Report Response Body: $responseBody');
 
-  //     if (response.statusCode == 200 || response.statusCode == 201) {
-  //       print('✅ Lab problem report submitted successfully');
-  //     } else {
-  //       print(
-  //         '⚠️ Lab problem report submission failed: ${response.statusCode}',
-  //       );
-  //     }
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        print('✅ Lab problem report submitted successfully');
+      } else {
+        print(
+          '⚠️ Lab problem report submission failed: ${response.statusCode}',
+        );
+      }
 
-  //     // Show success message
-  //     SnackbarUtils.showSuccess(
-  //       title: 'submitted_successfully'.tr,
-  //       message: 'proof_image_submitted_successfully'.tr,
-  //     );
+      // Show success message
+      SnackbarUtils.showSuccess(
+        title: 'submitted_successfully'.tr,
+        message: 'proof_image_submitted_successfully'.tr,
+      );
 
-  //     // Navigate back to today's task screen with delay
-  //     await Future.delayed(const Duration(milliseconds: 800), () {
-  //       Get.offAllNamed(AppRoutes.todaysTask);
-  //     });
-  //   } catch (e) {
-  //     print('❌ Error submitting lab problem report: $e');
+      // Navigate back to today's task screen with delay
+      await Future.delayed(const Duration(milliseconds: 800), () {
+        Get.offAllNamed(AppRoutes.todaysTask);
+      });
+    } catch (e) {
+      print('❌ Error submitting lab problem report: $e');
 
-  //     // Show success message anyway (image saved locally)
-  //     SnackbarUtils.showSuccess(
-  //       title: 'submitted_successfully'.tr,
-  //       message: 'proof_image_submitted_successfully'.tr,
-  //     );
+      // Show success message anyway (image saved locally)
+      SnackbarUtils.showSuccess(
+        title: 'submitted_successfully'.tr,
+        message: 'proof_image_submitted_successfully'.tr,
+      );
 
-  //     // Navigate back to today's task screen with delay
-  //     await Future.delayed(const Duration(milliseconds: 800), () {
-  //       Get.offAllNamed(AppRoutes.todaysTask);
-  //     });
-  //   }
-  // }
+      // Navigate back to today's task screen with delay
+      await Future.delayed(const Duration(milliseconds: 800), () {
+        Get.offAllNamed(AppRoutes.todaysTask);
+      });
+    }
+  }
 
-  // /// Mark extra pickup as incomplete when problem report is submitted
+  /// Mark extra pickup as incomplete when problem report is submitted
   // Future<void> _markExtraPickupIncomplete() async {
   //   try {
   //     print('========================================');
