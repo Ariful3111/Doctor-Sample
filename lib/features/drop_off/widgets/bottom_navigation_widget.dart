@@ -15,7 +15,7 @@ class BottomNavigationWidget extends GetView<DropLocationController> {
       () => Container(
         padding: EdgeInsets.all(16.w),
         decoration: BoxDecoration(
-          color: Colors.blue,
+          color: Colors.white,
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: .1),
@@ -42,7 +42,7 @@ class BottomNavigationWidget extends GetView<DropLocationController> {
                     Navigator.pop(context);
                   },
                   style: TextButton.styleFrom(
-                    foregroundColor: AppColors.textSecondary,
+                    backgroundColor: Colors.blue,
                     padding: isTablet
                         ? EdgeInsets.symmetric(vertical: 22.h)
                         : EdgeInsets.symmetric(vertical: 14.h),
@@ -54,11 +54,18 @@ class BottomNavigationWidget extends GetView<DropLocationController> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.arrow_back, size: isTablet ? 28.sp : 18.sp),
+                      Icon(
+                        Icons.arrow_back,
+                        size: isTablet ? 28.sp : 18.sp,
+                        color: Colors.white,
+                      ),
                       SizedBox(width: 8.w),
                       Text(
                         'back'.tr,
-                        style: TextStyle(fontSize: isTablet ? 18.sp : 14.sp,color: Colors.white),
+                        style: TextStyle(
+                          fontSize: isTablet ? 18.sp : 14.sp,
+                          color: Colors.white,
+                        ),
                       ),
                     ],
                   ),
@@ -94,7 +101,8 @@ class BottomNavigationWidget extends GetView<DropLocationController> {
                         controller.isLocationValid.value
                             ? Icons.check_circle
                             : Icons.location_off,
-                        size: isTablet ? 28.sp : 18.sp,color: Colors.white,
+                        size: isTablet ? 28.sp : 18.sp,
+                        color: Colors.white,
                       ),
                       SizedBox(width: 8.w),
                       Text(
