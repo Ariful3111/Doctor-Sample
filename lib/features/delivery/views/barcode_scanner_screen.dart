@@ -152,55 +152,53 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
           Expanded(
             flex: 3,
             child: Stack(
-                children: [
-                  MobileScanner(
-                    controller: cameraController,
-                    onDetect: (capture) {
-                      if (controller.isProcessing.value) return;
-                      if (isDropLocation && _isShowingInvalidQrDialog) return;
-                      final List<Barcode> barcodes = capture.barcodes;
-                      for (final barcode in barcodes) {
-                        // Drop location mode - handle differently
-                        if (isDropLocation &&
-                            controller.isProcessing.value == false &&
-                            !_hasNavigatedBack &&
-                            !_isShowingInvalidQrDialog) {
-                          controller.isProcessing.value = true;
-                          print(
-                            '📷 Drop location QR detected: ${barcode.rawValue}',
-                          );
-                          final qrCode = barcode.rawValue ?? '';
-                          _handleDropLocationQrScan(
-                            qrCode,
-                            context,
-                            controller,
-                          );
-                          return;
-                        }
-
-                        // Regular pickup mode
-                        controller.onBarcodeDetected(
-                          barcode.rawValue ?? '',
-                          context,
+              children: [
+                MobileScanner(
+                  controller: cameraController,
+                  onDetect: (capture) {
+                    if (controller.isProcessing.value) return;
+                    if (isDropLocation && _isShowingInvalidQrDialog) return;
+                    final List<Barcode> barcodes = capture.barcodes;
+                    for (final barcode in barcodes) {
+                      // Drop location mode - handle differently
+                      if (isDropLocation &&
+                          controller.isProcessing.value == false &&
+                          !_hasNavigatedBack &&
+                          !_isShowingInvalidQrDialog) {
+                        controller.isProcessing.value = true;
+                        print(
+                          '📷 Drop location QR detected: ${barcode.rawValue}',
                         );
+                        final qrCode = barcode.rawValue ?? '';
+                        _handleDropLocationQrScan(qrCode, context, controller);
+                        return;
                       }
-                    },
-                  ),
-                  if (isDropLocation && controller.isProcessing.value)
-                    Positioned.fill(
-                      child: IgnorePointer(
-                        child: Container(
-                          color: Colors.black.withValues(alpha: 0.35),
-                          child: const Center(
-                            child: CircularProgressIndicator(),
-                          ),
-                        ),
+
+                      // Regular pickup mode
+                      controller.onBarcodeDetected(
+                        barcode.rawValue ?? '',
+                        context,
+                      );
+                    }
+                  },
+                ),
+                Obx(() {
+                  if (!(isDropLocation && controller.isProcessing.value)) {
+                    return const SizedBox.shrink();
+                  }
+                  return Positioned.fill(
+                    child: IgnorePointer(
+                      child: Container(
+                        color: Colors.black.withValues(alpha: 0.35),
+                        child: const Center(child: CircularProgressIndicator()),
                       ),
                     ),
-                ],
-              ),
+                  );
+                }),
+              ],
             ),
-          
+          ),
+
           // Only show scanned samples list for pickup mode
           if (!isDropLocation)
             const Expanded(flex: 2, child: ScannedSamplesListWidget()),
