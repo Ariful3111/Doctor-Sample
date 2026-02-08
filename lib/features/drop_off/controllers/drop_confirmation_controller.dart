@@ -1,4 +1,7 @@
 import 'dart:convert';
+import 'package:doctor_app/features/drop_off/controllers/drop_location_controller.dart';
+import 'package:doctor_app/features/drop_off/controllers/pending_drop_date_controller.dart';
+import 'package:doctor_app/features/drop_off/controllers/sample_scanning_controller.dart';
 import 'package:get/get.dart';
 import 'package:flutter/scheduler.dart';
 import '../../../core/routes/app_routes.dart';
@@ -194,8 +197,17 @@ class DropConfirmationController extends GetxController {
               print(
                 '📋 No tour context - navigating to today\'s task (todo page)',
               );
+              if (Get.isRegistered<DropLocationController>()) {
+                Get.delete<DropLocationController>(force: true);
+              }
+              if (Get.isRegistered<SampleScanningController>()) {
+                Get.delete<SampleScanningController>(force: true);
+              }
+              if (Get.isRegistered<PendingDropDateController>()) {
+                Get.delete<PendingDropDateController>(force: true);
+              }
               // Use offNamed to clear the navigation stack
-              Get.offNamed(AppRoutes.todaysTask);
+              Get.offAllNamed(AppRoutes.todaysTask);
             }
           },
         );
