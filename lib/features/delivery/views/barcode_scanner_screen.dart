@@ -24,6 +24,7 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
   bool _hasNavigatedBack = false; // Prevent multiple back navigation
   bool _isShowingInvalidQrDialog = false;
   bool _isDropLocationMode = false;
+  bool _isLoading = false;
   late Worker _processingWorker;
 
   @override
@@ -166,6 +167,9 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
                           !_hasNavigatedBack &&
                           !_isShowingInvalidQrDialog) {
                         controller.isProcessing.value = true;
+                        if (!_isLoading && mounted) {
+                          setState(() => _isLoading = true);
+                        }
                         print(
                           '📷 Drop location QR detected: ${barcode.rawValue}',
                         );
@@ -182,19 +186,15 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
                     }
                   },
                 ),
-                Obx(() {
-                  if (!(isDropLocation && controller.isProcessing.value)) {
-                    return const SizedBox.shrink();
-                  }
-                  return Positioned.fill(
+                if (isDropLocation && _isLoading)
+                  Positioned.fill(
                     child: IgnorePointer(
                       child: Container(
                         color: Colors.black.withValues(alpha: 0.35),
                         child: const Center(child: CircularProgressIndicator()),
                       ),
                     ),
-                  );
-                }),
+                  ),
               ],
             ),
           ),
@@ -285,6 +285,9 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
       } finally {
         if (mounted) {
           _isShowingInvalidQrDialog = false;
+          if (_isLoading) {
+            setState(() => _isLoading = false);
+          }
           controller.isProcessing.value = false;
         }
       }
