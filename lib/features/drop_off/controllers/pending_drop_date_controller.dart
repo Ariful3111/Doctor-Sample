@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
 import '../../../data/repositories/pending_drop_date_repository.dart';
 import '../../../core/routes/app_routes.dart';
+import '../../../data/local/storage_service.dart';
 
 class PendingDropDateController extends GetxController {
   final PendingDropDateRepository _repository = PendingDropDateRepository();
@@ -25,8 +26,8 @@ class PendingDropDateController extends GetxController {
     if (args != null && args['driverId'] != null) {
       driverId = args['driverId'];
     } else {
-      // Default driverId
-      driverId = 1;
+      final storage = Get.find<StorageService>();
+      driverId = storage.getDriverId() ?? 1;
     }
     print('📋 PendingDropDateController - Driver ID: $driverId');
   }
@@ -36,6 +37,7 @@ class PendingDropDateController extends GetxController {
     try {
       isLoading.value = true;
       errorMessage.value = '';
+      pendingDates.clear();
 
       print('🔄 Fetching pending drop dates for driverId: $driverId');
 
@@ -46,10 +48,12 @@ class PendingDropDateController extends GetxController {
         print('✅ Pending dates loaded: ${pendingDates.length} dates');
       } else {
         errorMessage.value = 'Failed to load pending dates';
+        pendingDates.clear();
         print('❌ API returned success: false');
       }
     } catch (e) {
       errorMessage.value = 'Error loading pending dates: $e';
+      pendingDates.clear();
       print('❌ Error: $e');
     } finally {
       isLoading.value = false;

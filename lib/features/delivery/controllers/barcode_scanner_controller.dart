@@ -403,7 +403,9 @@ class BarcodeScannerController extends GetxController {
     // Stop scanning and cleanup
     stopScanning();
     isProcessing.value = false;
-    Get.find<DropLocationController>().isScanning.value=false;
+    if (Get.isRegistered<DropLocationController>()) {
+      Get.find<DropLocationController>().isScanning.value = false;
+    }
     final navigator = Get.key.currentState;
     if (navigator != null && navigator.canPop()) {
       navigator.pop();

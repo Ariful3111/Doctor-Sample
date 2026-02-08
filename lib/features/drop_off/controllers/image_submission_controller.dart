@@ -291,7 +291,10 @@ class ImageSubmissionController extends GetxController {
             },
             child: Text('camera'.tr),
           ),
-          TextButton(onPressed: () => Get.back(), child: Text('cancel'.tr)),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('cancel'.tr),
+          ),
         ],
       ),
     );
@@ -340,6 +343,7 @@ class ImageSubmissionController extends GetxController {
     try {
       final XFile? photo = await _picker.pickImage(
         source: ImageSource.camera,
+        imageQuality: 25,
         preferredCameraDevice: CameraDevice.rear,
       );
 

@@ -79,6 +79,15 @@ class TourStateService extends GetxService {
   Future<void> startTour(String tourId, int? appointmentId) async {
     if (hasActiveTour && activeTourId!.value == tourId) return;
 
+    if (activeTourId!.value.isNotEmpty && activeTourId!.value != tourId) {
+      completedDoctorIds.clear();
+      visitedDoctorIds.clear();
+      samplesSubmittedCount.value = 0;
+      await _storage.write(key: _completedDoctorsKey, value: <String>[]);
+      await _storage.write(key: _visitedDoctorsKey, value: <String>[]);
+      await _storage.write(key: _samplesSubmittedKey, value: 0);
+    }
+
     final now = DateTime.now();
     final date = _formatDate(now);
 

@@ -28,7 +28,15 @@ void main() async {
   if (userID == 0) {
     initialRoute = AppPages.initial;
   } else {
-    initialRoute = AppRoutes.todaysTask;
+    final activeTourId = (await storage.read(key: 'active_tour_id'))?.toString();
+    final exited =
+        (await storage.read(key: 'tour_intentional_exit')) == true;
+    if (!exited && activeTourId != null && activeTourId.trim().isNotEmpty) {
+      initialRoute = AppRoutes.tourDrList;
+      initialArguments = {'taskId': activeTourId.trim()};
+    } else {
+      initialRoute = AppRoutes.todaysTask;
+    }
   }
 
   runApp(MyApp(initialRoute: initialRoute, initialArguments: initialArguments));

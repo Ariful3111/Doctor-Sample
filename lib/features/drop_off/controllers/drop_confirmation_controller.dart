@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:flutter/scheduler.dart';
 import '../../../core/routes/app_routes.dart';
 import '../../../core/utils/snackbar_utils.dart';
 import '../../../data/local/storage_service.dart';
@@ -212,7 +213,14 @@ class DropConfirmationController extends GetxController {
 
   // Handle back button press
   void onBackPressed() {
-    Navigator.of(Get.context!).pop();
+    final navigator = Get.key.currentState;
+    if (navigator == null) return;
+
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      if (navigator.canPop()) {
+        navigator.pop();
+      }
+    });
   }
 
   // Force refresh sample status (for testing purposes)

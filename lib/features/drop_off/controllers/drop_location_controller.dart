@@ -261,8 +261,11 @@ class DropLocationController extends GetxController {
           print('📦 Total samples for this drop: $totalSamples');
         }
       }
-      final id = foundLocation!['id']?.toString() ?? '';
-      final name = foundLocation!['name'] ?? locationName;
+      final auth = foundLocation!['authentication'];
+      final dropLoc = auth is Map ? auth['dropLocation'] : null;
+      final dropLocMap = dropLoc is Map ? dropLoc : null;
+      final id = dropLocMap?['id']?.toString() ?? '';
+      final name = dropLocMap?['name']?.toString() ?? locationName;
 
       dropLocationId.value = id;
       dropLocationName.value = name;

@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import '../../../core/routes/app_routes.dart';
 import '../../../core/services/tour_state_service.dart';
 import '../../../data/local/storage_service.dart';
+import '../../drop_off/controllers/pending_drop_date_controller.dart';
 import '../repositories/get_tour_repo.dart';
 import '../repositories/extra_pickup_repository.dart';
 import 'package:doctor_app/shared/extensions/date_extensions.dart';
@@ -238,6 +239,10 @@ class TodaysTaskController extends GetxController {
       final driverId = await storage.read<int>(key: 'id') ?? 1;
 
       print('👤 Driver ID: $driverId');
+
+      if (Get.isRegistered<PendingDropDateController>()) {
+        Get.delete<PendingDropDateController>(force: true);
+      }
 
       Get.toNamed(
         AppRoutes.pendingDropDate,

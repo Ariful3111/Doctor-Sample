@@ -14,9 +14,8 @@ class DropConfirmationScreen extends GetView<DropConfirmationController> {
     return PopScope(
       canPop: true,
       onPopInvokedWithResult: (didPop, result) {
-        if (didPop) {
-          controller.onBackPressed();
-        }
+        if (didPop) return;
+        controller.onBackPressed();
       },
       child: Scaffold(
         appBar: AppBar(

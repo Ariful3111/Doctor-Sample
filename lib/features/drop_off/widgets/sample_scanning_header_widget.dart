@@ -20,8 +20,8 @@ class SampleScanningHeaderWidget extends StatelessWidget {
         // Reactive text showing scanned count
         Obx(
           () => Text(
-            controller.totalSamples > 1000
-                ? 'scanned'.trParams({
+            controller.totalSamples > controller.totalSamples
+                ? 'scanning'.trParams({
                     'count': controller.scannedCount.toString(),
                   })
                 : '${controller.scannedCount} out of ${controller.totalSamples}',

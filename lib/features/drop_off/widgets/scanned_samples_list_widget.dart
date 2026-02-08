@@ -63,10 +63,16 @@ class ScannedSamplesListWidget extends GetView<SampleScanningController> {
                     color: AppColors.textSecondary,
                   ),
                 ),
-                trailing: Icon(
-                  Icons.inventory_2,
-                  color: AppColors.primary,
-                  size: 20.sp,
+                trailing: InkWell(
+                  onTap: () {
+                    controller.scannedSamples$.removeAt(index);
+                  Get.find<SampleScanningController>().scannedCount$.value--;
+                  },
+                  child: Icon(
+                    Icons.delete,
+                    color: Colors.redAccent,
+                    size: 20.sp,
+                  ),
                 ),
               ),
             );

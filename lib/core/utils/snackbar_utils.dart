@@ -42,28 +42,25 @@ class SnackbarUtils {
         return;
       }
 
-      // Close any existing snackbar safely
-      if (Get.isSnackbarOpen) {
-        Get.closeCurrentSnackbar();
-      }
-
-      // Show snackbar immediately
-      // Get.snackbar automatically handles context and overlay
-      Get.snackbar(
-        title,
-        message,
-        snackPosition: position,
-        backgroundColor: backgroundColor,
-        colorText: colorText,
-        duration: duration ?? const Duration(seconds: 3),
-        icon: icon,
-        margin: margin ?? const EdgeInsets.all(10),
-        borderRadius: borderRadius ?? 8,
-        snackStyle: SnackStyle.FLOATING,
-        isDismissible: true,
-        dismissDirection: DismissDirection.horizontal,
-        forwardAnimationCurve: Curves.easeOutBack,
-      );
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        try {
+          Get.snackbar(
+            title,
+            message,
+            snackPosition: position,
+            backgroundColor: backgroundColor,
+            colorText: colorText,
+            duration: duration ?? const Duration(seconds: 3),
+            icon: icon,
+            margin: margin ?? const EdgeInsets.all(10),
+            borderRadius: borderRadius ?? 8,
+            snackStyle: SnackStyle.FLOATING,
+            isDismissible: true,
+            dismissDirection: DismissDirection.horizontal,
+            forwardAnimationCurve: Curves.easeOutBack,
+          );
+        } catch (_) {}
+      });
     } catch (e) {
       debugPrint('Snackbar error: $e - Title: $title, Message: $message');
     }
@@ -137,7 +134,9 @@ class SnackbarUtils {
   static void closeCurrent() {
     try {
       if (Get.context != null && Get.isSnackbarOpen) {
-        Get.closeCurrentSnackbar();
+        try {
+          Get.closeCurrentSnackbar();
+        } catch (_) {}
       }
     } catch (e) {
       debugPrint('Error closing snackbar: $e');

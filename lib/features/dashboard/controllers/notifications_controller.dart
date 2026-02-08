@@ -13,6 +13,8 @@ class NotificationsController extends GetxController {
       <Map<String, dynamic>>[].obs;
   final RxBool isLoading = false.obs;
   final RxSet<int> processingIds = <int>{}.obs;
+  final RxSet<int> acceptingIds = <int>{}.obs;
+  final RxSet<int> rejectingIds = <int>{}.obs;
 
   /// Store complete doctor data from accepted pickups
   /// Map: doctorId -> complete doctor data (with street, area, zip)
@@ -176,6 +178,7 @@ class NotificationsController extends GetxController {
   Future<void> acceptPickup(int pickupId, int index) async {
     try {
       processingIds.add(pickupId);
+      acceptingIds.add(pickupId);
 
       final response = await _repository.acceptExtraPickup(id: pickupId);
 
@@ -254,6 +257,7 @@ class NotificationsController extends GetxController {
       _showError(e.toString());
     } finally {
       processingIds.remove(pickupId);
+      acceptingIds.remove(pickupId);
     }
   }
 
@@ -261,6 +265,7 @@ class NotificationsController extends GetxController {
   Future<void> rejectPickup(int pickupId, int index) async {
     try {
       processingIds.add(pickupId);
+      rejectingIds.add(pickupId);
 
       final response = await _repository.rejectExtraPickup(id: pickupId);
 
@@ -281,6 +286,7 @@ class NotificationsController extends GetxController {
       _showError(e.toString());
     } finally {
       processingIds.remove(pickupId);
+      rejectingIds.remove(pickupId);
     }
   }
 

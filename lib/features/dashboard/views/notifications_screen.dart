@@ -286,16 +286,16 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
             // Action Buttons
             Obx(() {
-              final isProcessing = controller.processingIds.contains(pickupId);
-
+              final isAccepting = controller.acceptingIds.contains(pickupId);
+              final isRejecting = controller.rejectingIds.contains(pickupId);
               return Row(
                 children: [
                   Expanded(
                     child: ElevatedButton.icon(
-                      onPressed: isProcessing
+                      onPressed: isRejecting
                           ? null
                           : () => controller.rejectPickup(pickupId, index),
-                      icon: isProcessing
+                      icon: isRejecting
                           ? SizedBox(
                               width: 16.w,
                               height: 16.w,
@@ -322,10 +322,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                   SizedBox(width: 12.w),
                   Expanded(
                     child: ElevatedButton.icon(
-                      onPressed: isProcessing
+                      onPressed: isAccepting
                           ? null
                           : () => controller.acceptPickup(pickupId, index),
-                      icon: isProcessing
+                      icon: isAccepting
                           ? SizedBox(
                               width: 16.w,
                               height: 16.w,
@@ -464,7 +464,14 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                     ),
                     IconButton(
                       icon: Icon(Icons.close, color: AppColors.textSecondary),
-                      onPressed: () => Get.back(),
+                      onPressed: () {
+                        final navigator = Get.key.currentState;
+                        if (navigator != null && navigator.canPop()) {
+                          navigator.pop();
+                          return;
+                        }
+                        Navigator.of(context).pop();
+                      },
                       padding: EdgeInsets.zero,
                       constraints: BoxConstraints(minWidth: 24.w),
                     ),

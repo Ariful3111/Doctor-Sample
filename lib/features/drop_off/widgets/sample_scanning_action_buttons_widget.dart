@@ -19,41 +19,47 @@ class SampleScanningActionButtonsWidget extends StatelessWidget {
           : '';
 
       if (missing > 0) {
-        Get.dialog(
-          AlertDialog(
-            title: Text('⚠️ Incomplete Scanning'),
-            content: Text(
-              'You have scanned ${controller.scannedCount} out of ${controller.totalSamples} samples.$pendingSamplesText\n\n'
-              'Do you want to submit anyway?',
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!context.mounted) return;
+          showDialog<void>(
+            context: context,
+            barrierDismissible: false,
+            builder: (dialogContext) => AlertDialog(
+              title: const Text('⚠️ Incomplete Scanning'),
+              content: Text(
+                'You have scanned ${controller.scannedCount} out of ${controller.totalSamples} samples.$pendingSamplesText\n\n'
+                'Do you want to submit anyway?',
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(),
+                  child: const Text('No, Continue Scanning'),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(dialogContext).pop();
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      Get.toNamed(
+                        AppRoutes.dropConfirmation,
+                        arguments: {
+                          'scannedCount': controller.scannedCount,
+                          'totalSamples': controller.totalSamples,
+                          'scannedSampleIds': controller.scannedSamples,
+                          'dropLocationName': controller.dropLocationName,
+                          'dropLocationId': controller.dropLocationId,
+                          'dropLocationQRCode': controller.dropLocationQRCode,
+                          'selectedDate': controller.selectedDate,
+                          'tourId': controller.tourId,
+                        },
+                      );
+                    });
+                  },
+                  child: const Text('Yes, Submit'),
+                ),
+              ],
             ),
-            actions: [
-              TextButton(
-                onPressed: () => Get.back(),
-                child: Text('No, Continue Scanning'),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  Get.back();
-                  Get.toNamed(
-                    AppRoutes.dropConfirmation,
-                    arguments: {
-                      'scannedCount': controller.scannedCount,
-                      'totalSamples': controller.totalSamples,
-                      'scannedSampleIds': controller.scannedSamples,
-                      'dropLocationName': controller.dropLocationName,
-                      'dropLocationId': controller.dropLocationId,
-                      'dropLocationQRCode': controller.dropLocationQRCode,
-                      'selectedDate':
-                          controller.selectedDate, // ✅ Pass selected date
-                      'tourId': controller.tourId, // ✅ Pass tour ID
-                    },
-                  );
-                },
-                child: Text('Yes, Submit'),
-              ),
-            ],
-          ),
-        );
+          );
+        });
       } else {
         Get.toNamed(
           AppRoutes.dropConfirmation,

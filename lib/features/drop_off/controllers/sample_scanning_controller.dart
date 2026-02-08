@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:flutter/scheduler.dart';
 import '../../../core/utils/snackbar_utils.dart';
 import '../../../core/routes/app_routes.dart';
 import '../../../data/local/storage_service.dart';
@@ -25,6 +26,21 @@ class SampleScanningController extends GetxController {
   final _scannedSamples = <String>[].obs;
   final _pendingBarcode =
       Rxn<String>(); // Store detected barcode waiting for confirmation
+  bool _duplicateDialogOpen = false;
+  bool _limitDialogOpen = false;
+  bool _manualDialogOpen = false;
+  String? _lastDetectedValue;
+  DateTime? _lastDetectedAt;
+
+  BuildContext? _dialogContext() {
+    return Get.key.currentState?.overlay?.context ?? Get.context;
+  }
+
+  void _runAfterFrame(VoidCallback callback) {
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      callback();
+    });
+  }
 
   // Getters
   RxInt get scannedCount$ => _scannedCount;
@@ -108,6 +124,20 @@ class SampleScanningController extends GetxController {
     // Prevent processing if already scanning
     if (_isScanning.value) return;
 
+    final now = DateTime.now();
+    if (_lastDetectedValue == barcodeValue &&
+        _lastDetectedAt != null &&
+        now.difference(_lastDetectedAt!) < const Duration(milliseconds: 1200)) {
+      return;
+    }
+    _lastDetectedValue = barcodeValue;
+    _lastDetectedAt = now;
+
+    if (isComplete) {
+      _showLimitReachedDialog();
+      return;
+    }
+
     _isScanning.value = true;
 
     // Log scan time
@@ -121,10 +151,7 @@ class SampleScanningController extends GetxController {
     try {
       // Check if already scanned
       if (_scannedSamples.contains(barcodeValue)) {
-        SnackbarUtils.showWarning(
-          title: 'already_scanned'.tr,
-          message: 'already_scanned'.tr,
-        );
+        _showDuplicateScanDialog(barcodeValue);
         // Reset scanning state immediately to allow new scans
         _isScanning.value = false;
         _pendingBarcode.value = null;
@@ -147,47 +174,63 @@ class SampleScanningController extends GetxController {
 
   /// Show confirmation dialog to add scanned sample
   void _showAddConfirmationDialog(String barcodeValue) {
-    Get.dialog(
-      AlertDialog(
-        title: Text('sample_detected'.tr),
-        content: Text('add_sample_question'.trParams({'id': barcodeValue})),
-        actions: [
-          TextButton(
-            onPressed: () {
-              // Reset scanning state
-              _isScanning.value = false;
-              _pendingBarcode.value = null;
-              // Close dialog using Navigator to ensure it closes
-              Navigator.of(Get.overlayContext!).pop();
-            },
-            child: Text('cancel'.tr),
+    final context = _dialogContext();
+    if (context == null) {
+      _isScanning.value = false;
+      _pendingBarcode.value = null;
+      return;
+    }
+
+    _runAfterFrame(() {
+      try {
+        showDialog<void>(
+          context: context,
+          barrierDismissible: false,
+          builder: (dialogContext) => AlertDialog(
+            title: Text('sample_detected'.tr),
+            content: Text('add_sample_question'.trParams({'id': barcodeValue})),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  _isScanning.value = false;
+                  _pendingBarcode.value = null;
+                  Navigator.of(dialogContext).pop();
+                },
+                child: Text('cancel'.tr),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.of(dialogContext).pop();
+                  _runAfterFrame(() => confirmAddSample(barcodeValue));
+                },
+                child: Text('add'.tr),
+              ),
+            ],
           ),
-          ElevatedButton(
-            onPressed: () {
-              // Close dialog first
-              Navigator.of(Get.overlayContext!).pop();
-              // Then add sample with small delay
-              Future.delayed(const Duration(milliseconds: 200), () {
-                confirmAddSample(barcodeValue);
-              });
-            },
-            child: Text('add'.tr),
-          ),
-        ],
-      ),
-      barrierDismissible: false,
-    );
+        ).catchError((_) {
+          _isScanning.value = false;
+          _pendingBarcode.value = null;
+        });
+      } catch (_) {
+        _isScanning.value = false;
+        _pendingBarcode.value = null;
+      }
+    });
   }
 
   /// Confirm and add the scanned sample
   void confirmAddSample(String barcodeValue) {
     try {
+      if (isComplete) {
+        _showLimitReachedDialog();
+        _isScanning.value = false;
+        _pendingBarcode.value = null;
+        return;
+      }
+
       // Check if already scanned before adding
       if (_scannedSamples.contains(barcodeValue)) {
-        SnackbarUtils.showWarning(
-          title: 'already_scanned'.tr,
-          message: 'already_scanned_sample'.trParams({'id': barcodeValue}),
-        );
+        _showDuplicateScanDialog(barcodeValue);
         _isScanning.value = false;
         _pendingBarcode.value = null;
         return;
@@ -199,7 +242,7 @@ class SampleScanningController extends GetxController {
       _pendingBarcode.value = null;
 
       // Show success message after small delay to ensure dialog is fully closed
-      Future.delayed(const Duration(milliseconds: 200), () {
+      Future.microtask(() {
         SnackbarUtils.showSuccess(
           title: 'sample_added'.tr,
           message: 'sample_scanned_success'.trParams({'id': barcodeValue}),
@@ -230,19 +273,95 @@ class SampleScanningController extends GetxController {
     }
   }
 
+  void _showDuplicateScanDialog(String barcodeValue) {
+    if (_duplicateDialogOpen) return;
+    _duplicateDialogOpen = true;
+
+    final context = _dialogContext();
+    if (context == null) {
+      _duplicateDialogOpen = false;
+      return;
+    }
+
+    _runAfterFrame(() {
+      try {
+        showDialog<void>(
+          context: context,
+          barrierDismissible: false,
+          builder: (dialogContext) => AlertDialog(
+            title: Text('duplicate_scan'.tr),
+            content: Text(
+              'already_scanned_sample'.trParams({'id': barcodeValue}),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(),
+                child: Text('ok'.tr),
+              ),
+            ],
+          ),
+        ).whenComplete(() {
+          _duplicateDialogOpen = false;
+        });
+      } catch (_) {
+        _duplicateDialogOpen = false;
+      }
+    });
+  }
+
+  void _showLimitReachedDialog() {
+    if (_limitDialogOpen) return;
+    _limitDialogOpen = true;
+
+    final context = _dialogContext();
+    if (context == null) {
+      _limitDialogOpen = false;
+      return;
+    }
+
+    _runAfterFrame(() {
+      try {
+        showDialog<void>(
+          context: context,
+          barrierDismissible: false,
+          builder: (dialogContext) => AlertDialog(
+            title: Text('scanning_complete'.tr),
+            content: Text(
+              'all_samples_scanned_count'.trParams({
+                'count': _totalSamples.value.toString(),
+              }),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(),
+                child: Text('ok'.tr),
+              ),
+            ],
+          ),
+        ).whenComplete(() {
+          _limitDialogOpen = false;
+        });
+      } catch (_) {
+        _limitDialogOpen = false;
+      }
+    });
+  }
+
   /// Simulate scan result
   void _simulateScanResult() {
     try {
+      if (isComplete) {
+        _isScanning.value = false;
+        return;
+      }
+
       // Generate mock sample ID
       final sampleId =
           'SAMPLE_${(_scannedCount.value + 1).toString().padLeft(3, '0')}';
 
       // Check if already scanned
       if (_scannedSamples.contains(sampleId)) {
-        SnackbarUtils.showWarning(
-          title: 'already_scanned'.tr,
-          message: 'already_scanned'.tr,
-        );
+        _showDuplicateScanDialog(sampleId);
         _isScanning.value = false;
         return;
       }
@@ -300,81 +419,105 @@ class SampleScanningController extends GetxController {
       return;
     }
 
+    if (isComplete) {
+      _showLimitReachedDialog();
+      return;
+    }
+
     _showManualEntryDialog();
   }
 
   /// Show manual entry dialog
   void _showManualEntryDialog() {
+    if (_manualDialogOpen) return;
+    _manualDialogOpen = true;
     final TextEditingController textController = TextEditingController();
+    var isDisposed = false;
+    void safeDisposeLater() {
+      if (isDisposed) return;
+      isDisposed = true;
+      Future.delayed(const Duration(milliseconds: 500), () {
+        try {
+          textController.dispose();
+        } catch (_) {}
+      });
+    }
 
     // Dismiss any existing keyboard first to prevent screen shift
-    FocusScope.of(Get.context!).unfocus();
+    FocusManager.instance.primaryFocus?.unfocus();
+    final context = _dialogContext();
+    if (context == null) {
+      safeDisposeLater();
+      _manualDialogOpen = false;
+      return;
+    }
 
-    Future.delayed(const Duration(milliseconds: 300), () {
-      Get.dialog(
-        SimpleDialog(
-          contentPadding: EdgeInsets.symmetric(
-            horizontal: 24.w,
-            vertical: 24.h,
-          ),
-          title: Text(
-            'enter_sample_id'.tr,
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-          children: [
-            SizedBox(height: 16.h),
-            TextField(
-              controller: textController,
-              autofocus: true,
-              decoration: InputDecoration(
-                labelText: 'sample_id'.tr,
-                hintText: 'sample_id_hint_example'.tr,
-                border: const OutlineInputBorder(),
+    _runAfterFrame(() {
+      try {
+        showDialog<void>(
+          context: context,
+          barrierDismissible: false,
+          builder: (dialogContext) => SimpleDialog(
+            contentPadding: EdgeInsets.symmetric(
+              horizontal: 24.w,
+              vertical: 24.h,
+            ),
+            title: Text(
+              'enter_sample_id'.tr,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            children: [
+              SizedBox(height: 16.h),
+              TextField(
+                controller: textController,
+                autofocus: true,
+                decoration: InputDecoration(
+                  labelText: 'sample_id'.tr,
+                  hintText: 'sample_id_hint_example'.tr,
+                  border: const OutlineInputBorder(),
+                ),
+                onSubmitted: (value) {
+                  final sampleId = value.trim();
+                  Navigator.of(dialogContext).pop();
+                  _manualDialogOpen = false;
+                  _runAfterFrame(() => _processManuallySample(sampleId));
+                },
               ),
-              onSubmitted: (value) {
-                final sampleId = value.trim();
-                Navigator.of(Get.overlayContext!).pop();
-                // Use Future.delayed to ensure dialog is fully closed
-                Future.delayed(const Duration(milliseconds: 200), () {
-                  textController.dispose();
-                  _processManuallySample(sampleId);
-                });
-              },
-            ),
-            SizedBox(height: 24.h),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(Get.overlayContext!).pop();
-                    Future.delayed(const Duration(milliseconds: 50), () {
-                      textController.dispose();
-                    });
-                  },
-                  child: Text('cancel'.tr),
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    final value = textController.text.trim();
-                    Navigator.of(Get.overlayContext!).pop();
-                    final sampleId = value.isNotEmpty
-                        ? value
-                        : 'SAMPLE_${(_scannedCount.value + 1).toString().padLeft(3, '0')}';
-                    // Use Future.delayed to ensure dialog is fully closed
-                    Future.delayed(const Duration(milliseconds: 200), () {
-                      textController.dispose();
-                      _processManuallySample(sampleId);
-                    });
-                  },
-                  child: Text('add'.tr),
-                ),
-              ],
-            ),
-          ],
-        ),
-        barrierDismissible: false,
-      );
+              SizedBox(height: 24.h),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(dialogContext).pop();
+                      _manualDialogOpen = false;
+                    },
+                    child: Text('cancel'.tr),
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      final value = textController.text.trim();
+                      Navigator.of(dialogContext).pop();
+                      final sampleId = value.isNotEmpty
+                          ? value
+                          : 'SAMPLE_${(_scannedCount.value + 1).toString().padLeft(3, '0')}';
+                      _manualDialogOpen = false;
+                      _runAfterFrame(() => _processManuallySample(sampleId));
+                    },
+                    child: Text('add'.tr),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ).whenComplete(() {
+          safeDisposeLater();
+          _manualDialogOpen = false;
+        });
+      } catch (_) {
+        safeDisposeLater();
+        _manualDialogOpen = false;
+      }
     });
   }
 
@@ -388,12 +531,14 @@ class SampleScanningController extends GetxController {
       return;
     }
 
+    if (isComplete) {
+      _showLimitReachedDialog();
+      return;
+    }
+
     // Check if already scanned
     if (_scannedSamples.contains(sampleId)) {
-      SnackbarUtils.showWarning(
-        title: 'already_scanned'.tr,
-        message: 'already_scanned'.tr,
-      );
+      _showDuplicateScanDialog(sampleId);
       return;
     }
 
@@ -433,8 +578,10 @@ class SampleScanningController extends GetxController {
 
   /// Show back confirmation dialog
   void _showBackConfirmationDialog() {
+    final context = _dialogContext();
+    if (context == null) return;
     showDialog(
-      context: Get.context!,
+      context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
         return AlertDialog(
