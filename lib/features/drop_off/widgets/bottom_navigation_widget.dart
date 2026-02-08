@@ -44,7 +44,7 @@ class BottomNavigationWidget extends GetView<DropLocationController> {
                   style: TextButton.styleFrom(
                     backgroundColor: Colors.blue,
                     padding: isTablet
-                        ? EdgeInsets.symmetric(vertical: 22.h)
+                        ? EdgeInsets.symmetric(vertical: 18.h)
                         : EdgeInsets.symmetric(vertical: 14.h),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8.r),
@@ -56,14 +56,14 @@ class BottomNavigationWidget extends GetView<DropLocationController> {
                     children: [
                       Icon(
                         Icons.arrow_back,
-                        size: isTablet ? 28.sp : 18.sp,
+                        size: isTablet ? 22.sp : 18.sp,
                         color: Colors.white,
                       ),
                       SizedBox(width: 8.w),
                       Text(
                         'back'.tr,
                         style: TextStyle(
-                          fontSize: isTablet ? 18.sp : 14.sp,
+                          fontSize: isTablet ? 16.sp : 14.sp,
                           color: Colors.white,
                         ),
                       ),
@@ -87,7 +87,7 @@ class BottomNavigationWidget extends GetView<DropLocationController> {
                         : AppColors.textHint,
                     foregroundColor: AppColors.textOnPrimary,
                     padding: isTablet
-                        ? EdgeInsets.symmetric(vertical: 22.h)
+                        ? EdgeInsets.symmetric(vertical: 18.h)
                         : EdgeInsets.symmetric(vertical: 14.h),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8.r),
@@ -101,7 +101,7 @@ class BottomNavigationWidget extends GetView<DropLocationController> {
                         controller.isLocationValid.value
                             ? Icons.check_circle
                             : Icons.location_off,
-                        size: isTablet ? 28.sp : 18.sp,
+                        size: isTablet ? 22.sp : 18.sp,
                         color: Colors.white,
                       ),
                       SizedBox(width: 8.w),
@@ -110,7 +110,7 @@ class BottomNavigationWidget extends GetView<DropLocationController> {
                             ? 'confirm'.tr
                             : 'scan_location_first'.tr,
                         style: TextStyle(
-                          fontSize: isTablet ? 18.sp : 14.sp,
+                          fontSize: isTablet ? 16.sp : 14.sp,
                           fontWeight: FontWeight.w600,
                           color: Colors.white,
                         ),
