@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:get/get.dart';
 import '../../../core/themes/app_colors.dart';
 import '../widgets/app_logo_section.dart';
 import '../widgets/login_form_widget.dart';
@@ -37,20 +36,19 @@ class LoginScreen extends StatelessWidget {
               SizedBox(height: 24.h),
 
               // Forgot Password
-              TextButton(
-                onPressed: () {
-                  // TODO: Implement forgot password functionality
-                },
-                child: Text(
-                  'forgot_password_question'.tr,
-                  style: TextStyle(
-                    fontSize: 14.sp,
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-
+              // TextButton(
+              //   onPressed: () {
+              //     // TODO: Implement forgot password functionality
+              //   },
+              //   child: Text(
+              //     'forgot_password_question'.tr,
+              //     style: TextStyle(
+              //       fontSize: 14.sp,
+              //       color: AppColors.primary,
+              //       fontWeight: FontWeight.w500,
+              //     ),
+              //   ),
+              // ),
               SizedBox(height: 40.h),
             ],
           ),

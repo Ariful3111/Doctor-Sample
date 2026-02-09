@@ -294,7 +294,7 @@ const Map<String, Map<String, String>> appTranslationsData = {
     // Auth/UI extras
     'forgot_password_question': 'Forgot Password?',
     'app_title': 'Now Logistic',
-    'welcome_back_message': 'Welcome back! Please sign in to continue.',
+    'welcome_back_message': 'Welcome! Please sign in to continue.',
     'please_enter_your_user_id': 'Please enter your user ID',
     'please_enter_your_password': 'Please enter your password',
     'password_min_length': 'Password must be at least @min characters',
