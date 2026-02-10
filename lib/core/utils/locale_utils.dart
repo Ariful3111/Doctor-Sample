@@ -6,8 +6,8 @@ const String kLanguageCodeKey = 'language_code';
 
 Locale getSavedLocale(StorageService storage) {
   final saved = storage.read<String>(key: kLanguageCodeKey);
-  final code = saved ?? 'en';
-  final normalized = (code == 'de' || code == 'en') ? code : 'en';
+  final code = saved ?? 'de';
+  final normalized = (code == 'de' || code == 'en') ? code : 'de';
   return Locale(normalized);
 }
 
