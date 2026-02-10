@@ -566,9 +566,13 @@ class ImageSubmissionController extends GetxController {
         },
       );
     } catch (e) {
-      SnackbarUtils.showError(
-        title: 'submission_failed'.tr,
-        message: e.toString(),
+      Get.snackbar(
+        'submission_failed'.tr,
+        e.toString(),
+        duration: const Duration(seconds: 4),
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+        snackPosition: SnackPosition.BOTTOM,
       );
     } finally {
       _isSubmitting.value = false;

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:doctor_app/features/drop_off/controllers/drop_location_controller.dart';
 import 'package:doctor_app/features/drop_off/controllers/pending_drop_date_controller.dart';
 import 'package:doctor_app/features/drop_off/controllers/sample_scanning_controller.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter/scheduler.dart';
 import '../../../core/routes/app_routes.dart';
@@ -159,9 +160,13 @@ class DropConfirmationController extends GetxController {
         submitResult.fold(
           (error) {
             print('❌ Drop-off submission failed: $error');
-            SnackbarUtils.showError(
-              title: 'submission_failed'.tr,
-              message: error,
+            Get.snackbar(
+              'submission_failed'.tr,
+              error,
+              duration: const Duration(seconds: 4),
+              backgroundColor: Colors.red,
+              colorText: Colors.white,
+              snackPosition: SnackPosition.BOTTOM,
             );
             _isLoading.value = false;
           },
@@ -213,9 +218,13 @@ class DropConfirmationController extends GetxController {
         );
       } catch (e) {
         print('❌ Error submitting drop-off: $e');
-        SnackbarUtils.showError(
-          title: 'submission_failed'.tr,
-          message: e.toString(),
+        Get.snackbar(
+          'submission_failed'.tr,
+          e.toString(),
+          duration: const Duration(seconds: 4),
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+          snackPosition: SnackPosition.BOTTOM,
         );
         _isLoading.value = false;
       }
