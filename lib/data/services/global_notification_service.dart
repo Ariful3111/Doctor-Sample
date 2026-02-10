@@ -64,7 +64,7 @@ class GlobalNotificationService extends GetxService {
       print('🌍 [Global] Data type: ${data.runtimeType}');
 
       // Show notification immediately
-      SnackbarUtils.showInfo(
+      SnackbarUtils.showSuccess(
         title: 'New Extra Pickup',
         message:
             'A new extra pickup has been assigned. Please check notifications.',

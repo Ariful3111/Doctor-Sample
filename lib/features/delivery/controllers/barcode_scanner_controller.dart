@@ -448,11 +448,11 @@ class BarcodeScannerController extends GetxController {
 
   /// Show scan success dialog
   void _showScanSuccessDialog(String barcode) {
-    SnackbarUtils.showSuccess(
-      title: 'success'.tr,
-      message: 'sample_scanned_success'.trParams({'id': barcode}),
-      duration: const Duration(seconds: 2),
-    );
+    // SnackbarUtils.showSuccess(
+    //   title: 'success'.tr,
+    //   message: 'sample_scanned_success'.trParams({'id': barcode}),
+    //   duration: const Duration(seconds: 2),
+    // );
   }
 
   /// Get progress percentage

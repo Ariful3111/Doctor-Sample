@@ -139,7 +139,15 @@ class LoginController extends GetxController {
       } else {
         final error = response.getLeft().toNullable() ?? 'Unknown error';
         print('❌ Login failed: $error');
-        _showErrorMessage(error.toString());
+        // _showErrorMessage(error.toString());
+        Get.snackbar(
+          'error'.tr,
+          error.toString(),
+          duration: const Duration(seconds: 3),
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+          snackPosition: SnackPosition.BOTTOM,
+        );
       }
     } catch (error, stackTrace) {
       print('💥 Exception: $error');

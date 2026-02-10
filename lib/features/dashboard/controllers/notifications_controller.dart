@@ -129,7 +129,7 @@ class NotificationsController extends GetxController {
           if (!silent && pendingOnly.isNotEmpty) {
             _showSuccess('${pendingOnly.length} pending pickups found');
           } else if (!silent && pendingOnly.isEmpty) {
-            _showSuccess('No pending pickups at the moment');
+            // _showSuccess('No pending pickups at the moment');
           }
         },
       );

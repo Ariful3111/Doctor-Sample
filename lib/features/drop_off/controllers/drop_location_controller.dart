@@ -77,7 +77,7 @@ class DropLocationController extends GetxController {
     isScanning.value = true;
 
     try {
-      SnackbarUtils.showInfo(
+      SnackbarUtils.showSuccess(
         title: 'qr_scanner'.tr,
         message: 'point_camera_to_scan'.tr,
       );
