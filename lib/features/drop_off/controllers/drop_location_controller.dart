@@ -186,10 +186,10 @@ class DropLocationController extends GetxController {
 
       if (driverId == null) {
         isLocationValid.value = false;
-        SnackbarUtils.showError(
-          title: 'error'.tr,
-          message: 'driver_id_not_found'.tr,
-        );
+        // SnackbarUtils.showError(
+        //   title: 'error'.tr,
+        //   message: 'driver_id_not_found'.tr,
+        // );
         return false;
       }
 

@@ -105,10 +105,10 @@ class DropConfirmationController extends GetxController {
         final driverId = await storage.read<int>(key: 'id');
 
         if (driverId == null) {
-          SnackbarUtils.showError(
-            title: 'error'.tr,
-            message: 'driver_id_not_found'.tr,
-          );
+          // SnackbarUtils.showError(
+          //   title: 'error'.tr,
+          //   message: 'driver_id_not_found'.tr,
+          // );
           _isLoading.value = false;
           return;
         }

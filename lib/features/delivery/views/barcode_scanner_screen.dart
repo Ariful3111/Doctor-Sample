@@ -154,36 +154,71 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
             flex: 3,
             child: Stack(
               children: [
-                MobileScanner(
-                  controller: cameraController,
-                  onDetect: (capture) {
-                    if (controller.isProcessing.value) return;
-                    if (isDropLocation && _isShowingInvalidQrDialog) return;
-                    final List<Barcode> barcodes = capture.barcodes;
-                    for (final barcode in barcodes) {
-                      // Drop location mode - handle differently
-                      if (isDropLocation &&
-                          controller.isProcessing.value == false &&
-                          !_hasNavigatedBack &&
-                          !_isShowingInvalidQrDialog) {
-                        controller.isProcessing.value = true;
-                        if (!_isLoading && mounted) {
-                          setState(() => _isLoading = true);
-                        }
-                        print(
-                          '📷 Drop location QR detected: ${barcode.rawValue}',
-                        );
-                        final qrCode = barcode.rawValue ?? '';
-                        _handleDropLocationQrScan(qrCode, context, controller);
-                        return;
-                      }
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    final size = constraints.biggest;
+                    final shortestSide = size.width < size.height
+                        ? size.width
+                        : size.height;
+                    final scanWidth = shortestSide * 0.78;
+                    final scanHeight = shortestSide * 0.46;
+                    final scanWindow = Rect.fromCenter(
+                      center: Offset(size.width / 2, size.height / 2),
+                      width: scanWidth,
+                      height: scanHeight,
+                    );
 
-                      // Regular pickup mode
-                      controller.onBarcodeDetected(
-                        barcode.rawValue ?? '',
-                        context,
-                      );
-                    }
+                    return Stack(
+                      children: [
+                        MobileScanner(
+                          controller: cameraController,
+                          scanWindow: scanWindow,
+                          onDetect: (capture) {
+                            if (controller.isProcessing.value) return;
+                            if (isDropLocation && _isShowingInvalidQrDialog) {
+                              return;
+                            }
+                            final List<Barcode> barcodes = capture.barcodes;
+                            for (final barcode in barcodes) {
+                              // Drop location mode - handle differently
+                              if (isDropLocation &&
+                                  controller.isProcessing.value == false &&
+                                  !_hasNavigatedBack &&
+                                  !_isShowingInvalidQrDialog) {
+                                controller.isProcessing.value = true;
+                                if (!_isLoading && mounted) {
+                                  setState(() => _isLoading = true);
+                                }
+                                print(
+                                  '📷 Drop location QR detected: ${barcode.rawValue}',
+                                );
+                                final qrCode = barcode.rawValue ?? '';
+                                _handleDropLocationQrScan(
+                                  qrCode,
+                                  context,
+                                  controller,
+                                );
+                                return;
+                              }
+
+                              // Regular pickup mode
+                              controller.onBarcodeDetected(
+                                barcode.rawValue ?? '',
+                                context,
+                              );
+                            }
+                          },
+                        ),
+                        IgnorePointer(
+                          child: CustomPaint(
+                            size: Size.infinite,
+                            painter: _ScanAreaOverlayPainter(
+                              scanWindow: scanWindow,
+                            ),
+                          ),
+                        ),
+                      ],
+                    );
                   },
                 ),
                 if (isDropLocation && _isLoading)
@@ -292,5 +327,45 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
         }
       }
     });
+  }
+}
+
+class _ScanAreaOverlayPainter extends CustomPainter {
+  final Rect scanWindow;
+
+  const _ScanAreaOverlayPainter({required this.scanWindow});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final overlayPaint = Paint()
+      ..color = Colors.black.withValues(alpha: 0.35)
+      ..style = PaintingStyle.fill;
+
+    final windowPaint = Paint()
+      ..color = Colors.green
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 3;
+
+    final background = Path()..addRect(Offset.zero & size);
+    final cutout = Path()
+      ..addRRect(
+        RRect.fromRectAndRadius(scanWindow, const Radius.circular(16)),
+      );
+    final overlayPath = Path.combine(
+      PathOperation.difference,
+      background,
+      cutout,
+    );
+
+    canvas.drawPath(overlayPath, overlayPaint);
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(scanWindow, const Radius.circular(16)),
+      windowPaint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _ScanAreaOverlayPainter oldDelegate) {
+    return oldDelegate.scanWindow != scanWindow;
   }
 }

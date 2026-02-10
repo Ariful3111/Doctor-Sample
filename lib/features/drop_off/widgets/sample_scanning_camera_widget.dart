@@ -70,49 +70,115 @@ class _SampleScanningCameraWidgetState extends State<SampleScanningCameraWidget>
         child: Obx(
           () => Stack(
             children: [
-              MobileScanner(
-                controller: _cameraController,
-                onDetect: (capture) {
-                  final List<Barcode> barcodes = capture.barcodes;
-                  for (final barcode in barcodes) {
-                    final value = barcode.rawValue;
-                    if (value == null || value.isEmpty) continue;
-                    controller.onBarcodeDetected(value);
-                  }
-                },
-              ),
-              if (controller.isScanning$.value)
-                Container(
-                  width: double.infinity,
-                  height: double.infinity,
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.green, width: 3),
-                  ),
-                  child: Center(
-                    child: Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 16.w,
-                        vertical: 8.h,
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final size = constraints.biggest;
+                  final shortestSide = size.width < size.height
+                      ? size.width
+                      : size.height;
+                  final scanWidth = shortestSide * 0.78;
+                  final scanHeight = shortestSide * 0.46;
+                  final scanWindow = Rect.fromCenter(
+                    center: Offset(size.width / 2, size.height / 2),
+                    width: scanWidth,
+                    height: scanHeight,
+                  );
+
+                  return Stack(
+                    children: [
+                      MobileScanner(
+                        controller: _cameraController,
+                        scanWindow: scanWindow,
+                        onDetect: (capture) {
+                          final List<Barcode> barcodes = capture.barcodes;
+                          for (final barcode in barcodes) {
+                            final value = barcode.rawValue;
+                            if (value == null || value.isEmpty) continue;
+                            controller.onBarcodeDetected(value);
+                          }
+                        },
                       ),
-                      decoration: BoxDecoration(
-                        color: Colors.green.withOpacity(0.8),
-                        borderRadius: BorderRadius.circular(8.r),
-                      ),
-                      child: Text(
-                        'scanning_in_progress'.tr,
-                        style: TextStyle(
-                          fontSize: 14.sp,
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
+                      IgnorePointer(
+                        child: CustomPaint(
+                          size: Size.infinite,
+                          painter: _ScanAreaOverlayPainter(
+                            scanWindow: scanWindow,
+                          ),
                         ),
                       ),
-                    ),
-                  ),
-                ),
+                      if (controller.isScanning$.value)
+                        Align(
+                          alignment: Alignment.bottomCenter,
+                          child: Padding(
+                            padding: EdgeInsets.only(bottom: 16.h),
+                            child: Container(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 16.w,
+                                vertical: 8.h,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.green.withOpacity(0.8),
+                                borderRadius: BorderRadius.circular(8.r),
+                              ),
+                              child: Text(
+                                'scanning_in_progress'.tr,
+                                style: TextStyle(
+                                  fontSize: 14.sp,
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
+                  );
+                },
+              ),
             ],
           ),
         ),
       ),
     );
+  }
+}
+
+class _ScanAreaOverlayPainter extends CustomPainter {
+  final Rect scanWindow;
+
+  const _ScanAreaOverlayPainter({required this.scanWindow});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final overlayPaint = Paint()
+      ..color = Colors.black.withValues(alpha: 0.35)
+      ..style = PaintingStyle.fill;
+
+    final windowPaint = Paint()
+      ..color = Colors.green
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 3;
+
+    final background = Path()..addRect(Offset.zero & size);
+    final cutout = Path()
+      ..addRRect(
+        RRect.fromRectAndRadius(scanWindow, const Radius.circular(16)),
+      );
+    final overlayPath = Path.combine(
+      PathOperation.difference,
+      background,
+      cutout,
+    );
+
+    canvas.drawPath(overlayPath, overlayPaint);
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(scanWindow, const Radius.circular(16)),
+      windowPaint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _ScanAreaOverlayPainter oldDelegate) {
+    return oldDelegate.scanWindow != scanWindow;
   }
 }

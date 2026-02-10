@@ -68,7 +68,7 @@ class NotificationsController extends GetxController {
       print('📲 [fetchPendingPickups] Driver ID: $driverId');
       if (driverId == null) {
         if (!silent) {
-          _showError('driver_id_not_found'.tr);
+          // _showError('driver_id_not_found'.tr);
         }
         return;
       }
