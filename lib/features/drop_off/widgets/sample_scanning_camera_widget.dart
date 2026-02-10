@@ -67,76 +67,71 @@ class _SampleScanningCameraWidgetState extends State<SampleScanningCameraWidget>
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(10.r),
-        child: Obx(
-          () => Stack(
-            children: [
-              LayoutBuilder(
-                builder: (context, constraints) {
-                  final size = constraints.biggest;
-                  final shortestSide = size.width < size.height
-                      ? size.width
-                      : size.height;
-                  final scanWidth = shortestSide * 0.78;
-                  final scanHeight = shortestSide * 0.46;
-                  final scanWindow = Rect.fromCenter(
-                    center: Offset(size.width / 2, size.height / 2),
-                    width: scanWidth,
-                    height: scanHeight,
-                  );
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final size = constraints.biggest;
+            final shortestSide = size.width < size.height
+                ? size.width
+                : size.height;
+            final scanWidth = shortestSide * 0.78;
+            final scanHeight = shortestSide * 0.46;
+            final scanWindow = Rect.fromCenter(
+              center: Offset(size.width / 2, size.height / 2),
+              width: scanWidth,
+              height: scanHeight,
+            );
 
-                  return Stack(
-                    children: [
-                      MobileScanner(
-                        controller: _cameraController,
-                        scanWindow: scanWindow,
-                        onDetect: (capture) {
-                          final List<Barcode> barcodes = capture.barcodes;
-                          for (final barcode in barcodes) {
-                            final value = barcode.rawValue;
-                            if (value == null || value.isEmpty) continue;
-                            controller.onBarcodeDetected(value);
-                          }
-                        },
-                      ),
-                      IgnorePointer(
-                        child: CustomPaint(
-                          size: Size.infinite,
-                          painter: _ScanAreaOverlayPainter(
-                            scanWindow: scanWindow,
+            return Stack(
+              children: [
+                MobileScanner(
+                  controller: _cameraController,
+                  scanWindow: scanWindow,
+                  onDetect: (capture) {
+                    final List<Barcode> barcodes = capture.barcodes;
+                    for (final barcode in barcodes) {
+                      final value = barcode.rawValue;
+                      if (value == null || value.isEmpty) continue;
+                      controller.onBarcodeDetected(value);
+                    }
+                  },
+                ),
+                IgnorePointer(
+                  child: CustomPaint(
+                    size: Size.infinite,
+                    painter: _ScanAreaOverlayPainter(scanWindow: scanWindow),
+                  ),
+                ),
+                Obx(() {
+                  final isScanning = controller.isScanning$.value;
+                  if (!isScanning) return const SizedBox.shrink();
+                  return Align(
+                    alignment: Alignment.bottomCenter,
+                    child: Padding(
+                      padding: EdgeInsets.only(bottom: 16.h),
+                      child: Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 16.w,
+                          vertical: 8.h,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.green.withOpacity(0.8),
+                          borderRadius: BorderRadius.circular(8.r),
+                        ),
+                        child: Text(
+                          'scanning_in_progress'.tr,
+                          style: TextStyle(
+                            fontSize: 14.sp,
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
                       ),
-                      if (controller.isScanning$.value)
-                        Align(
-                          alignment: Alignment.bottomCenter,
-                          child: Padding(
-                            padding: EdgeInsets.only(bottom: 16.h),
-                            child: Container(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: 16.w,
-                                vertical: 8.h,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.green.withOpacity(0.8),
-                                borderRadius: BorderRadius.circular(8.r),
-                              ),
-                              child: Text(
-                                'scanning_in_progress'.tr,
-                                style: TextStyle(
-                                  fontSize: 14.sp,
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                    ],
+                    ),
                   );
-                },
-              ),
-            ],
-          ),
+                }),
+              ],
+            );
+          },
         ),
       ),
     );
