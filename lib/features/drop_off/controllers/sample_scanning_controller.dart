@@ -243,10 +243,10 @@ class SampleScanningController extends GetxController {
 
       // Show success message after small delay to ensure dialog is fully closed
       Future.microtask(() {
-        SnackbarUtils.showSuccess(
-          title: 'sample_added'.tr,
-          message: 'sample_scanned_success'.trParams({'id': barcodeValue}),
-        );
+        // SnackbarUtils.showSuccess(
+        //   title: 'sample_added'.tr,
+        //   message: 'sample_scanned_success'.trParams({'id': barcodeValue}),
+        // );
       });
 
       // Reset scanning state immediately after adding
@@ -546,10 +546,10 @@ class SampleScanningController extends GetxController {
     _scannedSamples.add(sampleId);
     _scannedCount.value++;
 
-    SnackbarUtils.showSuccess(
-      title: 'sample_added'.tr,
-      message: 'sample_added_success'.trParams({'id': sampleId}),
-    );
+    // SnackbarUtils.showSuccess(
+    //   title: 'sample_added'.tr,
+    //   message: 'sample_added_success'.trParams({'id': sampleId}),
+    // );
 
     // Check if all samples are scanned - show notification but don't auto-navigate
     if (isComplete) {

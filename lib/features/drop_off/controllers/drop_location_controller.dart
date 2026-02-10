@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../core/utils/snackbar_utils.dart';
 import '../../../core/routes/app_routes.dart';
@@ -115,9 +116,13 @@ class DropLocationController extends GetxController {
   Future<bool> _validateLocation() async {
     if (scannedQRCode.value.isEmpty) {
       isLocationValid.value = false;
-      SnackbarUtils.showError(
-        title: 'invalid_location'.tr,
-        message: 'not_valid_drop_location'.tr,
+      Get.snackbar(
+        'invalid_location'.tr,
+        'not_valid_drop_location'.tr,
+        duration: const Duration(seconds: 3),
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+        snackPosition: SnackPosition.BOTTOM,
       );
       return false;
     }
@@ -154,9 +159,14 @@ class DropLocationController extends GetxController {
 
       if (locationName.isEmpty) {
         isLocationValid.value = false;
-        SnackbarUtils.showError(
-          title: 'invalid_location'.tr,
-          message: 'not_valid_drop_location'.tr,
+
+        Get.snackbar(
+          'invalid_location'.tr,
+          'not_valid_drop_location'.tr,
+          duration: const Duration(seconds: 3),
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+          snackPosition: SnackPosition.BOTTOM,
         );
         return false;
       }

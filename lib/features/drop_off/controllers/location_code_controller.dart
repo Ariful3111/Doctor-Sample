@@ -142,9 +142,13 @@ class LocationCodeController extends GetxController {
     }
 
     if (!_isLocationCodeValid.value) {
-      SnackbarUtils.showWarning(
-        title: 'invalid_location'.tr,
-        message: 'enter_valid_location_code'.tr,
+      Get.snackbar(
+        'invalid_location'.tr,
+        'enter_valid_location_code'.tr,
+        duration: const Duration(seconds: 3),
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+        snackPosition: SnackPosition.BOTTOM,
       );
       return;
     }
@@ -236,7 +240,8 @@ class LocationCodeController extends GetxController {
       var isExtraPickup = false;
       if (tourId.isNotEmpty && Get.isRegistered<TodaysTaskController>()) {
         final todaysTaskController = Get.find<TodaysTaskController>();
-        final tours = todaysTaskController.todaySchedule.value?.data?.tours ?? [];
+        final tours =
+            todaysTaskController.todaySchedule.value?.data?.tours ?? [];
         final tour = tours.firstWhereOrNull((t) => t.id?.toString() == tourId);
         isExtraPickup = tour?.allDoctors.any((d) => d.isExtraPickup) ?? false;
       }
