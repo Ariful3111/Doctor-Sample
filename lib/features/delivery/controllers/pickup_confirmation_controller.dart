@@ -8,6 +8,7 @@ import '../../../core/services/tour_state_service.dart';
 import '../../../core/constants/network_paths.dart';
 import '../../../data/local/storage_service.dart';
 import '../../dashboard/controllers/todays_task_controller.dart';
+import '../widgets/end_tour_confirmation_dialog.dart';
 
 class PickupConfirmationController extends GetxController {
   // Reactive variables
@@ -165,19 +166,17 @@ class PickupConfirmationController extends GetxController {
       final shouldGoTodaysTask = remainingDoctors == 0 || tourId == null;
 
       if (shouldEndTour) {
-        print('🏁 Last doctor detected. Calling endTour API...');
-        final ended = await tourStateService.endTour(
-          appointmentId: aptIdInt,
-          tourId: tourId,
-        );
-        if (!ended) {
-          SnackbarUtils.showError(
-            title: 'Error',
-            message: 'Failed to end tour. Please try again.',
+        if (tourId != null) {
+          final ended = await EndTourConfirmationDialog.show(
+            appointmentId: aptIdInt,
+            tourId: tourId,
+            tourStateService: tourStateService,
           );
-        }
-        if (Get.isRegistered<TodaysTaskController>()) {
-          await Get.find<TodaysTaskController>().refreshTasks();
+          if (ended) {
+            if (Get.isRegistered<TodaysTaskController>()) {
+              await Get.find<TodaysTaskController>().refreshTasks();
+            }
+          }
         }
       }
 

@@ -75,7 +75,7 @@ class SnackbarUtils {
     showSafe(
       title: title,
       message: message,
-      backgroundColor: AppColors.primary,
+      backgroundColor: Colors.black.withValues(alpha: 0.9),
       colorText: AppColors.surface,
       duration: duration,
       icon: Icon(Icons.check_circle, color: AppColors.surface),
@@ -123,10 +123,10 @@ class SnackbarUtils {
     showSafe(
       title: title,
       message: message,
-      backgroundColor: AppColors.primary.withValues(alpha: 0.1),
-      colorText: AppColors.primary,
+      backgroundColor: Colors.black.withValues(alpha: 0.9),
+      colorText: AppColors.surface,
       duration: duration,
-      icon: Icon(Icons.info, color: AppColors.primary),
+      icon: Icon(Icons.info, color: AppColors.surface),
     );
   }
 

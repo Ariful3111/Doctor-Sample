@@ -279,7 +279,7 @@ class TourStateService extends GetxService {
         value: effectiveStartDate,
       );
     }
-print(
+    print(
       'Ending tour: $tourId, Date: $effectiveStartDate, End Time: $endTimeToSend, Late Flag: $lateFlag, Appointment ID: $appointmentId',
     );
     final body = {
