@@ -171,6 +171,7 @@ class _TodaysTaskScreenState extends State<TodaysTaskScreen> {
                     },
                   );
                 }),
+                SizedBox(height: 50.h),
               ],
             ),
           ),

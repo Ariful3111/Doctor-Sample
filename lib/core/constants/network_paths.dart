@@ -1,5 +1,6 @@
 class NetworkPaths {
-  static const String baseUrl = 'http://5.189.172.20:5000';
+  static const String baseUrl =
+      'https://now-back-similer-server-backend.onrender.com';
 
   // Extra Pickup APIs
   static const String extraPickupAccept = '/api/extra-pickups';
@@ -24,7 +25,6 @@ class NetworkPaths {
       '/api/startTour/$appointmentId';
   static String appointmentsByDriver(String driverId, String date) =>
       '/api/appointments/driver/$driverId/$date';
-
 
   // Drop Point APIs
   static const String dropPointSubmit = '/api/submit';

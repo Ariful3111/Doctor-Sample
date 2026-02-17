@@ -7,7 +7,7 @@ class SnackbarUtils {
   static void showSafe({
     required String title,
     required String message,
-    SnackPosition position = SnackPosition.BOTTOM,
+    SnackPosition position = SnackPosition.TOP,
     Color? backgroundColor,
     Color? colorText,
     Duration? duration,

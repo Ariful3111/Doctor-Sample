@@ -572,7 +572,7 @@ class ImageSubmissionController extends GetxController {
         duration: const Duration(seconds: 4),
         backgroundColor: Colors.red,
         colorText: Colors.white,
-        snackPosition: SnackPosition.BOTTOM,
+        snackPosition: SnackPosition.TOP,
       );
     } finally {
       _isSubmitting.value = false;

@@ -122,7 +122,7 @@ class DropLocationController extends GetxController {
         duration: const Duration(seconds: 3),
         backgroundColor: Colors.red,
         colorText: Colors.white,
-        snackPosition: SnackPosition.BOTTOM,
+        snackPosition: SnackPosition.TOP,
       );
       return false;
     }
@@ -166,7 +166,7 @@ class DropLocationController extends GetxController {
           duration: const Duration(seconds: 3),
           backgroundColor: Colors.red,
           colorText: Colors.white,
-          snackPosition: SnackPosition.BOTTOM,
+          snackPosition: SnackPosition.TOP,
         );
         return false;
       }

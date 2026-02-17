@@ -166,7 +166,7 @@ class DropConfirmationController extends GetxController {
               duration: const Duration(seconds: 4),
               backgroundColor: Colors.red,
               colorText: Colors.white,
-              snackPosition: SnackPosition.BOTTOM,
+              snackPosition: SnackPosition.TOP,
             );
             _isLoading.value = false;
           },
@@ -224,7 +224,7 @@ class DropConfirmationController extends GetxController {
           duration: const Duration(seconds: 4),
           backgroundColor: Colors.red,
           colorText: Colors.white,
-          snackPosition: SnackPosition.BOTTOM,
+          snackPosition: SnackPosition.TOP,
         );
         _isLoading.value = false;
       }
