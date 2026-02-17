@@ -29,9 +29,10 @@ void main() async {
   if (userID == 0) {
     initialRoute = AppPages.initial;
   } else {
-    final activeTourId = (await storage.read(key: 'active_tour_id'))?.toString();
-    final exited =
-        (await storage.read(key: 'tour_intentional_exit')) == true;
+    final activeTourId = (await storage.read(
+      key: 'active_tour_id',
+    ))?.toString();
+    final exited = (await storage.read(key: 'tour_intentional_exit')) == true;
     if (!exited && activeTourId != null && activeTourId.trim().isNotEmpty) {
       initialRoute = AppRoutes.tourDrList;
       initialArguments = {'taskId': activeTourId.trim()};
@@ -148,67 +149,58 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
           transitionDuration: const Duration(milliseconds: 300),
           builder: (context, child) {
             final connectivityService = Get.find<ConnectivityService>();
-            return Obx(
-              () {
-                final online = connectivityService.isOnline.value;
-                if (online) {
-                  return child ?? const SizedBox.shrink();
-                }
+            return Obx(() {
+              final online = connectivityService.isOnline.value;
+              if (online) {
+                return child ?? const SizedBox.shrink();
+              }
 
-                return Stack(
-                  children: [
-                    AbsorbPointer(
-                      absorbing: true,
-                      child: child ?? const SizedBox.shrink(),
-                    ),
-                    Scaffold(
-                      backgroundColor:
-                          Colors.black.withValues(alpha: 0.6),
-                      body: Center(
-                        child: Container(
-                          margin: const EdgeInsets.symmetric(horizontal: 24),
-                          padding: const EdgeInsets.all(24),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(
-                                Icons.wifi_off_rounded,
-                                size: 48,
-                                color: Colors.redAccent,
-                              ),
-                              const SizedBox(height: 16),
-                              Text(
-                                'internet_required_title'.tr,
-                                textAlign: TextAlign.center,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .titleMedium,
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                'internet_required_message'.tr,
-                                textAlign: TextAlign.center,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodyMedium,
-                              ),
-                              const SizedBox(height: 16),
-                              const CircularProgressIndicator(
-                                strokeWidth: 2,
-                              ),
-                            ],
-                          ),
+              return Stack(
+                children: [
+                  AbsorbPointer(
+                    absorbing: true,
+                    child: child ?? const SizedBox.shrink(),
+                  ),
+                  Scaffold(
+                    backgroundColor: Colors.black.withValues(alpha: 0.6),
+                    body: Center(
+                      child: Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 24),
+                        padding: const EdgeInsets.all(24),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.wifi_off_rounded,
+                              size: 48,
+                              color: Colors.redAccent,
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              'internet_required_title'.tr,
+                              textAlign: TextAlign.center,
+                              style: Theme.of(context).textTheme.titleMedium,
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'internet_required_message'.tr,
+                              textAlign: TextAlign.center,
+                              style: Theme.of(context).textTheme.bodyMedium,
+                            ),
+                            const SizedBox(height: 16),
+                            const CircularProgressIndicator(strokeWidth: 2),
+                          ],
                         ),
                       ),
                     ),
-                  ],
-                );
-              },
-            );
+                  ),
+                ],
+              );
+            });
           },
           // Navigate to active tour after first frame if needed
           onReady: () {

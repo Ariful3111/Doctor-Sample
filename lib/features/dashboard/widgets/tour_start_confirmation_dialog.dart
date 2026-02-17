@@ -170,12 +170,62 @@ class TourStartConfirmationDialog extends StatelessWidget {
                           ? null
                           : () async {
                               isProcessing.value = true;
+                              OverlayEntry? overlayEntry;
+                              try {
+                                final overlayState = Overlay.maybeOf(
+                                  context,
+                                  rootOverlay: true,
+                                );
+                                if (overlayState != null) {
+                                  overlayEntry = OverlayEntry(
+                                    builder: (overlayContext) => Material(
+                                      color: Colors.black.withValues(
+                                        alpha: 0.35,
+                                      ),
+                                      child: Center(
+                                        child: Container(
+                                          padding: EdgeInsets.all(20.w),
+                                          decoration: BoxDecoration(
+                                            color: Colors.white,
+                                            borderRadius: BorderRadius.circular(
+                                              12.r,
+                                            ),
+                                          ),
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              SizedBox(
+                                                width: 22.w,
+                                                height: 22.w,
+                                                child:
+                                                    const CircularProgressIndicator(
+                                                      strokeWidth: 2,
+                                                    ),
+                                              ),
+                                              SizedBox(width: 12.w),
+                                              Text(
+                                                'please_wait'.tr,
+                                                style: TextStyle(
+                                                  fontSize: 14.sp,
+                                                  fontWeight: FontWeight.w600,
+                                                  color: AppColors.textPrimary,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                  overlayState.insert(overlayEntry);
+                                }
 
-                              // ✅ Close dialog FIRST using Navigator
-                              Navigator.of(context).pop();
-
-                              // ✅ Then start tour logic
-                              await onConfirm();
+                                Navigator.of(context).pop();
+                                await onConfirm();
+                              } finally {
+                                overlayEntry?.remove();
+                                isProcessing.value = false;
+                              }
                             },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary,
@@ -184,14 +234,39 @@ class TourStartConfirmationDialog extends StatelessWidget {
                           borderRadius: BorderRadius.circular(12.r),
                         ),
                       ),
-                      child: Text(
-                        'yes'.tr,
-                        style: TextStyle(
-                          fontSize: 16.sp,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white,
-                        ),
-                      ),
+                      child: isProcessing.value
+                          ? Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                SizedBox(
+                                  width: 18.w,
+                                  height: 18.w,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      Colors.white,
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(width: 10.w),
+                                Text(
+                                  'please_wait'.tr,
+                                  style: TextStyle(
+                                    fontSize: 14.sp,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ],
+                            )
+                          : Text(
+                              'yes'.tr,
+                              style: TextStyle(
+                                fontSize: 16.sp,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white,
+                              ),
+                            ),
                     ),
                   ),
                 ],
