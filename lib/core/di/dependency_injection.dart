@@ -8,6 +8,7 @@ import 'package:doctor_app/features/dashboard/controllers/notifications_controll
 import 'package:doctor_app/features/dashboard/controllers/todays_task_controller.dart';
 import 'package:doctor_app/features/dashboard/repositories/get_tour_repo.dart';
 import 'package:doctor_app/core/services/tour_state_service.dart';
+import 'package:doctor_app/core/services/connectivity_service.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 
@@ -22,6 +23,10 @@ class DependencyInjection {
 
     // Eagerly instantiate services
     Get.put(TourStateService(), permanent: true);
+    await Get.putAsync(
+      () => ConnectivityService().init(),
+      permanent: true,
+    );
 
     // Initialize GlobalNotificationService and NotificationsController early
     // These need to be permanent for caching to work properly

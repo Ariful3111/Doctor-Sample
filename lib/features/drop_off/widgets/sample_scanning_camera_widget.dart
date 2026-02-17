@@ -114,7 +114,7 @@ class _SampleScanningCameraWidgetState extends State<SampleScanningCameraWidget>
                           vertical: 8.h,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.green.withOpacity(0.8),
+                          color: Colors.green.withValues(alpha: 0.8),
                           borderRadius: BorderRadius.circular(8.r),
                         ),
                         child: Text(

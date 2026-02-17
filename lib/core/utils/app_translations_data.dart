@@ -309,6 +309,9 @@ const Map<String, Map<String, String>> appTranslationsData = {
         'Select a pending date to continue with drop-off',
     'no_pending_dates': 'No pending drop dates available',
     'error_loading_dates': 'Error Loading Dates',
+    'internet_required_title': 'Internet Required',
+    'internet_required_message':
+        'Please turn on mobile data or Wi‑Fi to continue using the app.',
   },
   'de': {
     'login': 'Anmelden',
@@ -625,5 +628,8 @@ const Map<String, Map<String, String>> appTranslationsData = {
         'Wählen Sie ein ausstehend Datum aus, um mit dem Drop-off fortzufahren',
     'no_pending_dates': 'Keine ausstehenden Drop-Termine verfügbar',
     'error_loading_dates': 'Fehler beim Laden der Termine',
+    'internet_required_title': 'Internet erforderlich',
+    'internet_required_message':
+        'Bitte aktivieren Sie mobile Daten oder WLAN, um die App weiter zu verwenden.',
   },
 };
