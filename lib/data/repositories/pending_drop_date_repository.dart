@@ -1,9 +1,10 @@
+import 'package:doctor_app/core/constants/network_paths.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../models/pending_drop_date_model.dart';
 
 class PendingDropDateRepository {
-  static const String baseUrl = 'http://5.189.172.20:5000';
+  static const String baseUrl = NetworkPaths.baseUrl;
 
   Future<PendingDropDateModel> getPendingDropDates(int driverId) async {
     try {
@@ -13,7 +14,6 @@ class PendingDropDateRepository {
 
       print('📋 Pending Drop Date API Response Status: ${response.statusCode}');
       print('📋 Response Body: ${response.body}');
-
       if (response.statusCode == 200) {
         final jsonData = json.decode(response.body);
         return PendingDropDateModel.fromJson(jsonData);

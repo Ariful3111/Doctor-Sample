@@ -1,3 +1,4 @@
+import 'package:doctor_app/core/constants/network_paths.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
@@ -633,7 +634,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       final match = RegExp(r'uploads/([^/]*\.\w+)$').firstMatch(pdfUrl);
       if (match != null) {
         final filename = match.group(1);
-        return 'http://5.189.172.20:5000/uploads/$filename';
+        return '${NetworkPaths.baseUrl}/uploads/$filename';
       }
     }
 

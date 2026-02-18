@@ -194,10 +194,10 @@ class PickupConfirmationController extends GetxController {
           );
         }
       } else {
-        SnackbarUtils.showSuccess(
-          title: 'pickup_confirmed_title'.tr,
-          message: 'pickup_confirmed_message'.tr,
-        );
+        // SnackbarUtils.showSuccess(
+        //   title: 'pickup_confirmed_title'.tr,
+        //   message: 'pickup_confirmed_message'.tr,
+        // );
 
         final navigator = Get.key.currentState;
         if (navigator != null) {

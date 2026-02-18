@@ -1,6 +1,6 @@
+import 'package:doctor_app/core/constants/network_paths.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../../core/utils/snackbar_utils.dart';
 import '../../../core/routes/app_routes.dart';
 import '../../../data/local/storage_service.dart';
 import '../instructions/views/instructions_popup.dart';
@@ -82,7 +82,7 @@ class DrDetailsController extends GetxController {
       final match = RegExp(r'uploads/([^/]*\.\w+)$').firstMatch(pdfUrl);
       if (match != null) {
         final filename = match.group(1);
-        return 'http://5.189.172.20:5000/uploads/$filename';
+        return '${NetworkPaths.baseUrl}/uploads/$filename';
       }
     }
 
@@ -97,10 +97,10 @@ class DrDetailsController extends GetxController {
   }
 
   void startVisit() {
-    SnackbarUtils.showSuccess(
-      title: 'visit_started'.tr,
-      message: 'visit_started_message'.trParams({'name': doctorName.value}),
-    );
+    // SnackbarUtils.showSuccess(
+    //   title: 'visit_started'.tr,
+    //   message: 'visit_started_message'.trParams({'name': doctorName.value}),
+    // );
 
     // tourId pass from arguments if available
     String? tourId;
