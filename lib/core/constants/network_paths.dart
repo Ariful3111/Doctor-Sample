@@ -1,6 +1,5 @@
 class NetworkPaths {
-  static const String baseUrl =
-      'https://now-back-similer-server-backend.onrender.com';
+  static const String baseUrl = 'http://5.189.172.20:5000';
 
   // Extra Pickup APIs
   static const String extraPickupAccept = '/api/extra-pickups';
