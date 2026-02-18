@@ -5,7 +5,7 @@ import '../../../core/routes/app_routes.dart';
 import '../../dashboard/controllers/todays_task_controller.dart';
 import '../../../core/services/tour_state_service.dart';
 
-class EndTourConfirmationDialog {
+class EndTourConfirmationDialogForReport {
   static Future<bool> show({
     required int appointmentId,
     required String tourId,
@@ -14,9 +14,8 @@ class EndTourConfirmationDialog {
     final context = Get.context;
     if (context == null) return false;
     debugPrint("Tour Api Call Start: $appointmentId $tourId");
-
     final result = await Get.to<bool>(
-      () => _EndTourConfirmationPage(
+      () => _EndTourConfirmationPageForReport(
         appointmentId: appointmentId,
         tourId: tourId,
         tourStateService: tourStateService,
@@ -28,23 +27,24 @@ class EndTourConfirmationDialog {
   }
 }
 
-class _EndTourConfirmationPage extends StatefulWidget {
+class _EndTourConfirmationPageForReport extends StatefulWidget {
   final int appointmentId;
   final String tourId;
   final TourStateService tourStateService;
 
-  const _EndTourConfirmationPage({
+  const _EndTourConfirmationPageForReport({
     required this.appointmentId,
     required this.tourId,
     required this.tourStateService,
   });
 
   @override
-  State<_EndTourConfirmationPage> createState() =>
-      _EndTourConfirmationPageState();
+  State<_EndTourConfirmationPageForReport> createState() =>
+      _EndTourConfirmationPageForReportState();
 }
 
-class _EndTourConfirmationPageState extends State<_EndTourConfirmationPage> {
+class _EndTourConfirmationPageForReportState
+    extends State<_EndTourConfirmationPageForReport> {
   bool isLoading = false;
   String? errorMessage;
 

@@ -15,6 +15,7 @@ import '../../../data/local/storage_service.dart';
 import '../../../core/services/tour_state_service.dart';
 import '../../dashboard/controllers/todays_task_controller.dart';
 import '../repositories/submit_drop_off_repo.dart';
+import '../widgets/end_tour_confirmation_dialog_for_report.dart';
 
 /// Controller for managing image submission functionality
 /// Handles image selection from camera/gallery and submission logic
@@ -240,15 +241,11 @@ class ImageSubmissionController extends GetxController {
     final aptIdInt = await _resolveAppointmentIdForTour(effectiveTourId);
     if (aptIdInt == null) return;
 
-    print('🏁 Last doctor detected. Calling endTour API...');
-    final ended = await tourStateService.endTour(
+    await EndTourConfirmationDialogForReport.show(
       appointmentId: aptIdInt,
       tourId: effectiveTourId,
+      tourStateService: tourStateService,
     );
-    print('🏁 endTour result: $ended');
-    if (Get.isRegistered<TodaysTaskController>()) {
-      await Get.find<TodaysTaskController>().refreshTasks();
-    }
   }
 
   /// Initialize reactive listeners
@@ -365,10 +362,10 @@ class ImageSubmissionController extends GetxController {
         final String? permanentPath = await _saveImagePermanently(photo.path);
         if (permanentPath != null) {
           _selectedImagePath.value = permanentPath;
-          SnackbarUtils.showSuccess(
-            title: 'image_captured'.tr,
-            message: 'image_captured_success'.tr,
-          );
+          // SnackbarUtils.showSuccess(
+          //   title: 'image_captured'.tr,
+          //   message: 'image_captured_success'.tr,
+          // );
         }
         return;
       }
@@ -382,10 +379,10 @@ class ImageSubmissionController extends GetxController {
         print('✅ Compressed image saved permanently to: $permanentPath');
         _selectedImagePath.value = permanentPath;
 
-        SnackbarUtils.showSuccess(
-          title: 'image_captured'.tr,
-          message: 'image_captured_success'.tr,
-        );
+        // SnackbarUtils.showSuccess(
+        //   title: 'image_captured'.tr,
+        //   message: 'image_captured_success'.tr,
+        // );
       } else {
         print('⚠️ Failed to save compressed image');
         SnackbarUtils.showError(
@@ -760,21 +757,16 @@ class ImageSubmissionController extends GetxController {
       final isLastDoctor = await _isLastDoctorOfCurrentTour(tourStateService);
       if (isLastDoctor) {
         await _endTourForCurrentTourIfPossible(tourStateService);
+        return;
       }
 
       // Wait a bit for snackbar to be seen, then navigate
       await Future.delayed(const Duration(milliseconds: 800), () {
-        if (isLastDoctor) {
-          // Navigate back to today's task screen
-          Get.offAllNamed(AppRoutes.todaysTask);
-        } else {
-          // Navigate back to tour details
-          Get.offNamedUntil(
-            AppRoutes.tourDrList,
-            (route) => false,
-            arguments: {'taskId': tourStateService.currentTourId},
-          );
-        }
+        Get.offNamedUntil(
+          AppRoutes.tourDrList,
+          (route) => false,
+          arguments: {'taskId': tourStateService.currentTourId},
+        );
       });
     } catch (e) {
       print('❌ Error submitting doctor report image: $e');
@@ -797,27 +789,16 @@ class ImageSubmissionController extends GetxController {
       final isLastDoctor = await _isLastDoctorOfCurrentTour(tourStateService);
       if (isLastDoctor) {
         await _endTourForCurrentTourIfPossible(tourStateService);
+        return;
       }
 
       // Wait a bit for snackbar to be seen, then navigate
       await Future.delayed(const Duration(milliseconds: 800), () {
-        if (isLastDoctor) {
-          // Show tour completion message
-          SnackbarUtils.showSuccess(
-            title: 'tour_completed'.tr,
-            message: 'tour_completed_message'.tr,
-          );
-
-          // Navigate back to today's task screen
-          Get.offAllNamed(AppRoutes.todaysTask);
-        } else {
-          // Navigate back to tour details
-          Get.offNamedUntil(
-            AppRoutes.tourDrList,
-            (route) => false,
-            arguments: {'taskId': tourStateService.currentTourId},
-          );
-        }
+        Get.offNamedUntil(
+          AppRoutes.tourDrList,
+          (route) => false,
+          arguments: {'taskId': tourStateService.currentTourId},
+        );
       });
     }
   }
@@ -956,27 +937,16 @@ class ImageSubmissionController extends GetxController {
       final isLastDoctor = await _isLastDoctorOfCurrentTour(tourStateService);
       if (isLastDoctor) {
         await _endTourForCurrentTourIfPossible(tourStateService);
+        return;
       }
 
       // Wait a bit for snackbar to be seen, then navigate
       await Future.delayed(const Duration(milliseconds: 800), () {
-        if (isLastDoctor) {
-          // Show tour completion message
-          SnackbarUtils.showSuccess(
-            title: 'tour_completed'.tr,
-            message: 'tour_completed_message'.tr,
-          );
-
-          // Navigate back to today's task screen
-          Get.offAllNamed(AppRoutes.todaysTask);
-        } else {
-          // Navigate back to tour details
-          Get.offNamedUntil(
-            AppRoutes.tourDrList,
-            (route) => false,
-            arguments: {'taskId': tourStateService.currentTourId},
-          );
-        }
+        Get.offNamedUntil(
+          AppRoutes.tourDrList,
+          (route) => false,
+          arguments: {'taskId': tourStateService.currentTourId},
+        );
       });
     } catch (e) {
       print('❌ Error submitting problem report: $e');
@@ -999,19 +969,16 @@ class ImageSubmissionController extends GetxController {
       final isLastDoctor = await _isLastDoctorOfCurrentTour(tourStateService);
       if (isLastDoctor) {
         await _endTourForCurrentTourIfPossible(tourStateService);
+        return;
       }
 
       // Wait a bit for snackbar to be seen, then navigate
       await Future.delayed(const Duration(milliseconds: 800), () {
-        if (isLastDoctor) {
-          Get.offAllNamed(AppRoutes.todaysTask);
-        } else {
-          Get.offNamedUntil(
-            AppRoutes.tourDrList,
-            (route) => false,
-            arguments: {'taskId': tourStateService.currentTourId},
-          );
-        }
+        Get.offNamedUntil(
+          AppRoutes.tourDrList,
+          (route) => false,
+          arguments: {'taskId': tourStateService.currentTourId},
+        );
       });
     }
   }

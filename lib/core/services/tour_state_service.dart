@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 
@@ -297,7 +298,7 @@ class TourStateService extends GetxService {
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode(body),
     );
-    print('End tour response: ${response.statusCode} ${response.body}');
+    debugPrint('End tour response: ${response.statusCode} ${response.body}');
     return response.statusCode == 200 || response.statusCode == 201;
   }
 
