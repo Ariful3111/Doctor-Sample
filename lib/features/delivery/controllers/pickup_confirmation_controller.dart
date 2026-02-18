@@ -172,11 +172,7 @@ class PickupConfirmationController extends GetxController {
             tourId: tourId,
             tourStateService: tourStateService,
           );
-          if (ended) {
-            if (Get.isRegistered<TodaysTaskController>()) {
-              await Get.find<TodaysTaskController>().refreshTasks();
-            }
-          }
+          if (ended) return;
         }
       }
 

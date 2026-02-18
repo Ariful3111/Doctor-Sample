@@ -1,6 +1,8 @@
 import 'package:doctor_app/core/utils/snackbar_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../core/routes/app_routes.dart';
+import '../../dashboard/controllers/todays_task_controller.dart';
 import '../../../core/services/tour_state_service.dart';
 
 class EndTourConfirmationDialog {
@@ -57,7 +59,24 @@ class _EndTourConfirmationPageState extends State<_EndTourConfirmationPage> {
     );
 
     if (ended) {
-      Get.back(result: true);
+      if (Get.isRegistered<TodaysTaskController>()) {
+        await Get.find<TodaysTaskController>().refreshTasks();
+      }
+
+      SnackbarUtils.showSuccess(
+        title: 'tour_completed'.tr,
+        message: 'tour_completed_message'.tr,
+      );
+
+      final navigator = Get.key.currentState;
+      if (navigator != null) {
+        navigator.pushNamedAndRemoveUntil(
+          AppRoutes.todaysTask,
+          (route) => false,
+        );
+      } else {
+        Get.offAllNamed(AppRoutes.todaysTask);
+      }
     } else {
       setState(() {
         isLoading = false;
