@@ -212,10 +212,9 @@ class _TourDrListScreenState extends State<TourDrListScreen> {
           }).toList();
 
           final appointmentIdForTour =
-              _todaysController.todaySchedule.value?.data?.getAppointmentIdForTour(
-                    int.tryParse(_tourId ?? ''),
-                  ) ??
-                  '';
+              _todaysController.todaySchedule.value?.data
+                  ?.getAppointmentIdForTour(int.tryParse(_tourId ?? '')) ??
+              '';
 
           return SingleChildScrollView(
             padding: EdgeInsets.all(16.w),
@@ -253,6 +252,7 @@ class _TourDrListScreenState extends State<TourDrListScreen> {
                           'phone': d.phone ?? '',
                           'zip': d.zip ?? '',
                         },
+                        isExtraPickup: d.isExtraPickup,
                         onTap: () async {
                           await _tourState.markDoctorVisited(d.id.toString());
                           // Use microtask to defer navigation until next event loop

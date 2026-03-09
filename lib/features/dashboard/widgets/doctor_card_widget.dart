@@ -6,11 +6,12 @@ import '../../../core/themes/app_colors.dart';
 class DoctorCardWidget extends StatelessWidget {
   final Map<String, dynamic> doctor;
   final VoidCallback onTap;
-
+  final bool isExtraPickup;
   const DoctorCardWidget({
     super.key,
     required this.doctor,
     required this.onTap,
+    required this.isExtraPickup,
   });
 
   @override
@@ -19,6 +20,7 @@ class DoctorCardWidget extends StatelessWidget {
       margin: EdgeInsets.only(bottom: 12.h),
       child: Card(
         elevation: 2,
+        color: isExtraPickup ? Color(0xffCEFAFE) : null,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12.r),
         ),
