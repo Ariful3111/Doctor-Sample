@@ -293,7 +293,7 @@ const Map<String, Map<String, String>> appTranslationsData = {
     'enter_your_password': 'Enter Your Password',
     // Auth/UI extras
     'forgot_password_question': 'Forgot Password?',
-    'app_title': 'Now Logistic',
+    'app_title': 'Driverzz',
     'welcome_back_message': 'Welcome! Please sign in to continue.',
     'please_enter_your_user_id': 'Please enter your user ID',
     'please_enter_your_password': 'Please enter your password',
@@ -610,7 +610,7 @@ const Map<String, Map<String, String>> appTranslationsData = {
     'enter_your_password': 'Geben Sie Ihr Passwort ein',
     // Auth/UI extras
     'forgot_password_question': 'Passwort vergessen?',
-    'app_title': 'Now Logistic',
+    'app_title': 'Driverzz',
     'welcome_back_message':
         'Willkommen zurück! Bitte melden Sie sich an, um fortzufahren.',
     'please_enter_your_user_id': 'Bitte geben Sie Ihre Benutzer-ID ein',

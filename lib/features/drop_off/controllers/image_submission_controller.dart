@@ -270,8 +270,8 @@ class ImageSubmissionController extends GetxController {
       );
       return;
     }
-
-    _showImageSourceDialog(context);
+    _selectFromCamera();
+    // _showImageSourceDialog(context);
   }
 
   /// Show dialog for selecting image source
