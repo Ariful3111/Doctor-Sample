@@ -9,16 +9,14 @@ class ReportTextFieldWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = Get.find<ReportController>();
-    return Obx(
-      () => TextFormField(
-        controller: TextEditingController(text: controller.reportText.value),
-        maxLines: 5,
-        decoration: InputDecoration(
-          hintText: 'Enter report details...',
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8.r),
-            borderSide: BorderSide(color: Colors.grey.shade300),
-          ),
+    return TextFormField(
+      controller: controller.reportTextController,
+      maxLines: 5,
+      decoration: InputDecoration(
+        hintText: 'Enter report details...',
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8.r),
+          borderSide: BorderSide(color: Colors.grey.shade300),
         ),
       ),
     );

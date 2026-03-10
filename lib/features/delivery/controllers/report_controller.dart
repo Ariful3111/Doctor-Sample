@@ -1,4 +1,5 @@
 import 'package:doctor_app/core/routes/app_routes.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -8,6 +9,7 @@ import '../../../core/utils/snackbar_utils.dart';
 
 class ReportController extends GetxController {
   RxString reportText = ''.obs;
+  final TextEditingController reportTextController = TextEditingController();
 
   // Doctor info from arguments
   String doctorId = '';
@@ -23,7 +25,20 @@ class ReportController extends GetxController {
   void onInit() {
     super.onInit();
     _loadArguments();
+    reportTextController.text = reportText.value;
+    reportTextController.addListener(() {
+      final text = reportTextController.text;
+      if (reportText.value != text) {
+        reportText.value = text;
+      }
+    });
     _callAppointmentStartAPI();
+  }
+
+  @override
+  void onClose() {
+    reportTextController.dispose();
+    super.onClose();
   }
 
   void _loadArguments() {
@@ -91,13 +106,22 @@ class ReportController extends GetxController {
   }
 
   void toggleReportText(String text) {
-    final List<String> texts = reportText.value.split(', ')..remove('');
+    final List<String> texts = reportTextController.text
+        .split(', ')
+        .map((e) => e.trim())
+        .where((e) => e.isNotEmpty)
+        .toList();
     if (texts.contains(text)) {
       texts.remove(text);
     } else {
       texts.add(text);
     }
-    reportText.value = texts.join(', ');
+    final updated = texts.join(', ');
+    reportTextController.value = reportTextController.value.copyWith(
+      text: updated,
+      selection: TextSelection.collapsed(offset: updated.length),
+      composing: TextRange.empty,
+    );
   }
 
   Future<void> goToNext() async {

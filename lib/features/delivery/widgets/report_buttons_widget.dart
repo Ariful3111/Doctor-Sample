@@ -55,7 +55,13 @@ class ReportButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final controller = Get.find<ReportController>();
     return Obx(() {
-      final isSelected = controller.reportText.value.contains(text);
+      final selectedValues =
+          controller.reportText.value
+              .split(', ')
+              .map((e) => e.trim())
+              .where((e) => e.isNotEmpty)
+              .toSet();
+      final isSelected = selectedValues.contains(text);
       return InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(12.r),
