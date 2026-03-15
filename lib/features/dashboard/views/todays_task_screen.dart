@@ -85,7 +85,7 @@ class _TodaysTaskScreenState extends State<TodaysTaskScreen> {
         }
 
         return RefreshIndicator(
-          onRefresh: controller.refreshTasks,
+          onRefresh: () => controller.refreshTasks(date: DateTime.now()),
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
             padding: EdgeInsets.all(16.w),

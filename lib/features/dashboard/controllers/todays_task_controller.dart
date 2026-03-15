@@ -29,18 +29,18 @@ class TodaysTaskController extends GetxController {
     loadTodaysTasks();
   }
 
-  Future<void> loadTodaysTasks() async {
-    print('📋 [TodaysTask] Loading tasks...');
+  Future<void> loadTodaysTasks({DateTime? date}) async {
+    print('📋 [TodaysTask] Loading tasks... date param: $date');
     _isLoading.value = true;
-    await _loadTodaysTasksAsync();
+    await _loadTodaysTasksAsync(date: date); // Pass the date parameter
   }
 
   /// Load today's tasks with proper async/await
   /// Ensures extra pickups are cached BEFORE parsing tours
-  Future<void> _loadTodaysTasksAsync() async {
+  Future<void> _loadTodaysTasksAsync({DateTime? date}) async {
     print('📋 [TodaysTask] _loadTodaysTasksAsync started');
     await _fetchAllExtraPickups(); // Wait for extra pickups to be cached first!
-    await _fetchTours();
+    await _fetchTours(dateTime: date); // Pass the date parameter
     print('📋 [TodaysTask] _loadTodaysTasksAsync completed');
   }
 
@@ -85,7 +85,7 @@ class TodaysTaskController extends GetxController {
   /// Helper to get repository
   ExtraPickupRepository _repository() => ExtraPickupRepository();
 
-  Future<void> _fetchTours() async {
+  Future<void> _fetchTours({DateTime? dateTime}) async {
     try {
       final storage = Get.find<StorageService>();
       final driverId = await storage.read<int>(key: 'id');
@@ -96,7 +96,9 @@ class TodaysTaskController extends GetxController {
         _isLoading.value = false;
         return;
       }
-
+      if (dateTime != null) {
+        _selectedDate.value = dateTime;
+      }
       final String date = _selectedDate.value.toApiDate();
       print('🗓️ Fetching tours for driver $driverId, date: $date');
 
@@ -165,8 +167,11 @@ class TodaysTaskController extends GetxController {
   }
 
   /// Refresh tasks
-  Future<void> refreshTasks() async {
-    await loadTodaysTasks();
+  Future<void> refreshTasks({DateTime? date}) async {
+    print('🔄 [REFRESH] Called with date: $date');
+    print('🔄 [REFRESH] Current DateTime.now(): ${DateTime.now()}');
+    print('🔄 [REFRESH] _selectedDate.value: ${_selectedDate.value}');
+    await loadTodaysTasks(date: date);
   }
 
   /// Navigate to tour details
