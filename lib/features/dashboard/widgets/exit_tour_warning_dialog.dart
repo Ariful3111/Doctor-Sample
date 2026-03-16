@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:get/get.dart';
 import '../../../core/themes/app_colors.dart';
 
 /// Exit Tour Warning Dialog with 2 scenarios:
@@ -33,17 +34,20 @@ class ExitTourWarningDialog extends StatelessWidget {
           borderRadius: BorderRadius.circular(16.r),
         ),
         title: Text(
-          'Exit Tour?',
+          'exit_tour_question'.tr,
           style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold),
         ),
         content: Text(
-          'Are you sure you want to exit? No work has been saved yet.',
+          'exit_tour_warning'.tr,
           style: TextStyle(fontSize: 14.sp),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: Text('Continue', style: TextStyle(color: AppColors.primary)),
+            child: Text(
+              'continue'.tr,
+              style: TextStyle(color: AppColors.primary),
+            ),
           ),
           TextButton(
             onPressed: () {
@@ -51,7 +55,7 @@ class ExitTourWarningDialog extends StatelessWidget {
               onSilentExit(); // Then execute callback
             },
             child: Text(
-              'Exit',
+              'exit'.tr,
               style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
             ),
           ),
@@ -64,7 +68,7 @@ class ExitTourWarningDialog extends StatelessWidget {
     return AlertDialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
       title: Text(
-        'Exit Tour?',
+        'exit_tour_question'.tr,
         style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold),
       ),
       content: SingleChildScrollView(
@@ -133,7 +137,10 @@ class ExitTourWarningDialog extends StatelessWidget {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: Text('Continue', style: TextStyle(color: AppColors.primary)),
+          child: Text(
+            'continue'.tr,
+            style: TextStyle(color: AppColors.primary),
+          ),
         ),
         TextButton(
           onPressed: () {
@@ -141,7 +148,7 @@ class ExitTourWarningDialog extends StatelessWidget {
             onConfirm(); // Then execute callback
           },
           child: Text(
-            'Exit',
+            'exit'.tr,
             style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
           ),
         ),

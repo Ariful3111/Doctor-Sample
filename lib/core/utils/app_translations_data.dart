@@ -312,6 +312,11 @@ const Map<String, Map<String, String>> appTranslationsData = {
     'internet_required_title': 'Internet Required',
     'internet_required_message':
         'Please turn on mobile data or Wi‑Fi to continue using the app.',
+    // Exit tour warning dialog
+    'exit_tour_question': 'Exit Tour?',
+    'exit_tour_warning':
+        'If you exit now, all progress on this tour will be erased. You will have to start from scratch',
+    'continue': 'Continue',
   },
   'de': {
     'login': 'Anmelden',
@@ -495,7 +500,7 @@ const Map<String, Map<String, String>> appTranslationsData = {
         'Sie haben eine aktive Tour. Bitte schließen Sie diese zuerst ab.',
     'tour_completed': 'Tour abgeschlossen',
     'tour_completed_message':
-        'Herzlichen Glückwunsch! Sie haben alle Ärzte in dieser Tour besucht.',
+        'Alle Aufträge wurden erfolgreich abgeschlossen 🥳',
     'retry': 'Erneut versuchen',
     'scan_successful': 'Scan erfolgreich',
     'scan_failed': 'Scan fehlgeschlagen',
@@ -631,5 +636,11 @@ const Map<String, Map<String, String>> appTranslationsData = {
     'internet_required_title': 'Internet erforderlich',
     'internet_required_message':
         'Bitte aktivieren Sie mobile Daten oder WLAN, um die App weiter zu verwenden.',
+    // Exit tour warning dialog
+    'exit_tour_question': 'Tour verlassen?',
+    'exit_tour_warning':
+        'Wenn Sie jetzt abbrechen, gehen alle Daten dieser Tour verloren. Sie müssen dann ganz von vorne beginnen',
+    'continue': 'Fortsetzen',
+    'exit': 'Beenden',
   },
 };
