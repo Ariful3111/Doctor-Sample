@@ -224,18 +224,14 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               _buildInfoRow(
                 icon: Icons.calendar_today,
                 label: 'date'.tr,
-                value: date,
+                value: convertDateFormat(date.toString()),
               ),
               SizedBox(height: 8.h),
             ],
 
             // Doctors
             if (doctors.isNotEmpty) ...[
-              _buildInfoRow(
-                icon: Icons.person,
-                label: 'doctors'.tr,
-                value: '${doctors.length} ${'doctor'.tr}(s)',
-              ),
+              _buildInfoRow(icon: Icons.person, label: 'doctors'.tr, value: ''),
               SizedBox(height: 4.h),
               ...doctors.map(
                 (doctor) => GestureDetector(
@@ -399,11 +395,11 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       if (difference.inMinutes < 1) {
         return 'just_now'.tr;
       } else if (difference.inHours < 1) {
-        return '${difference.inMinutes} ${'minutes_ago'.tr}';
+        return 'minutes_ago'.trParams({'n': difference.inMinutes.toString()});
       } else if (difference.inDays < 1) {
-        return '${difference.inHours} ${'hours_ago'.tr}';
+        return 'hours_ago'.trParams({'n': difference.inHours.toString()});
       } else {
-        return '${difference.inDays} ${'days_ago'.tr}';
+        return 'days_ago'.trParams({'n': difference.inDays.toString()});
       }
     } catch (e) {
       return timestamp;
@@ -639,5 +635,15 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     }
 
     return pdfUrl;
+  }
+
+  String convertDateFormat(String date) {
+    final parts = date.split('-');
+
+    final year = '20${parts[0]}';
+    final month = parts[1];
+    final day = parts[2];
+
+    return '$day-$month-$year';
   }
 }

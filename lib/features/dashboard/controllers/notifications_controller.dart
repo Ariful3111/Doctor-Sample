@@ -127,7 +127,11 @@ class NotificationsController extends GetxController {
 
           // Show success message with count if not silent
           if (!silent && pendingOnly.isNotEmpty) {
-            _showSuccess('${pendingOnly.length} pending pickups found');
+            _showSuccess(
+              'pending_pickups_found'.trParams({
+                'count': pendingOnly.length.toString(),
+              }),
+            );
           } else if (!silent && pendingOnly.isEmpty) {
             // _showSuccess('No pending pickups at the moment');
           }
