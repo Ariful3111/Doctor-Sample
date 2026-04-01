@@ -47,12 +47,12 @@ class PickupDoctorInfoWidget extends GetView<PickupConfirmationController> {
             ),
           ),
           SizedBox(height: 4.h),
-          Obx(
-            () => Text(
-              '${'visit_id_label'.tr}: ${controller.visitId.value}',
-              style: TextStyle(fontSize: 14.sp, color: AppColors.textSecondary),
-            ),
-          ),
+          // Obx(
+          //   () => Text(
+          //     '${'visit_id_label'.tr}: ${controller.visitId.value}',
+          //     style: TextStyle(fontSize: 14.sp, color: AppColors.textSecondary),
+          //   ),
+          // ),
         ],
       ),
     );

@@ -68,7 +68,7 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
         preferredSize: Size.fromHeight(appBarHeight),
         child: AppBar(
           title: Text(
-            isDropLocation ? 'QR code scanner' : 'Bar code scanner',
+            isDropLocation ? 'qr_code_scanner'.tr : 'bar_code_scanner'.tr,
             style: TextStyle(
               fontSize: isTablet ? 14.sp : 20.sp,
               fontWeight: FontWeight.w600,
