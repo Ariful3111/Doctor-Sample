@@ -317,9 +317,10 @@ const Map<String, Map<String, String>> appTranslationsData = {
         'Please turn on mobile data or Wi‑Fi to continue using the app.',
     // Exit tour warning dialog
     'exit_tour_question': 'Exit Tour?',
-    'exit_tour_warning':
-        'If you exit now, all progress on this tour will be erased. You will have to start from scratch',
+    'exit_tour_warning': 'Are you sure you want to exit the tour?',
     'continue': 'Continue',
+    'Exit': 'Exit',
+    "Cancel": "Cancel",
   },
   'de': {
     'login': 'Anmelden',
@@ -644,9 +645,10 @@ const Map<String, Map<String, String>> appTranslationsData = {
         'Bitte aktivieren Sie mobile Daten oder WLAN, um die App weiter zu verwenden.',
     // Exit tour warning dialog
     'exit_tour_question': 'Tour verlassen?',
-    'exit_tour_warning':
-        'Wenn Sie jetzt abbrechen, gehen alle Daten dieser Tour verloren. Sie müssen dann ganz von vorne beginnen',
+    'exit_tour_warning': 'Möchten Sie die Tour wirklich verlassen?',
     'continue': 'Fortsetzen',
     'exit': 'Beenden',
+    "Exit": "Verlassen",
+    "Cancel": "Abbrechen",
   },
 };

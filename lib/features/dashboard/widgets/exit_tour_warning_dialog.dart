@@ -45,7 +45,7 @@ class ExitTourWarningDialog extends StatelessWidget {
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
             child: Text(
-              'continue'.tr,
+              'Cancel'.tr,
               style: TextStyle(color: AppColors.primary),
             ),
           ),
@@ -55,7 +55,7 @@ class ExitTourWarningDialog extends StatelessWidget {
               onSilentExit(); // Then execute callback
             },
             child: Text(
-              'exit'.tr,
+              'Exit'.tr,
               style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
             ),
           ),
