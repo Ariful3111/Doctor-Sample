@@ -31,7 +31,7 @@ class PickupSamplesSummaryWidget extends GetView<PickupConfirmationController> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Samples Collected',
+                'Samples Collected'.tr,
                 style: TextStyle(
                   fontSize: 16.sp,
                   fontWeight: FontWeight.bold,

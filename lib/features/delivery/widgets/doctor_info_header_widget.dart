@@ -59,12 +59,15 @@ class DoctorInfoHeaderWidget extends StatelessWidget {
                 ),
 
                 SizedBox(width: 16.w),
-                Text(
-                  controller.doctorName.value,
-                  style: TextStyle(
-                    fontSize: 20.sp,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
+                Expanded(
+                  child: Text(
+                    controller.doctorName.value,
+                    style: TextStyle(
+                      fontSize: 20.sp,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
+                    ),
+                    softWrap: true,
                   ),
                 ),
               ],

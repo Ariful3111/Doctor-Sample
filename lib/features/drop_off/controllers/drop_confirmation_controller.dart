@@ -161,7 +161,7 @@ class DropConfirmationController extends GetxController {
           (error) {
             print('❌ Drop-off submission failed: $error');
             Get.snackbar(
-              'submission_failed'.tr,
+              "Submission Failed",
               error,
               duration: const Duration(seconds: 4),
               backgroundColor: Colors.red,

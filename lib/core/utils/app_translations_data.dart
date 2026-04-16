@@ -328,6 +328,7 @@ const Map<String, Map<String, String>> appTranslationsData = {
     'send_anyway_question': 'Send anyway?',
     'continue_scanning_button': 'Continue scanning',
     'send_anyway_button': 'Send anyway',
+    'Samples Collected': 'Samples Collected',
   },
   'de': {
     'login': 'Anmelden',
@@ -664,5 +665,6 @@ const Map<String, Map<String, String>> appTranslationsData = {
     'send_anyway_question': 'Trotzdem senden?',
     'continue_scanning_button': 'Weiter scannen',
     'send_anyway_button': 'Trotzdem senden',
+    'Samples Collected': 'Entnommene Proben',
   },
 };
