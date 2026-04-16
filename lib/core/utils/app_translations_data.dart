@@ -321,6 +321,13 @@ const Map<String, Map<String, String>> appTranslationsData = {
     'continue': 'Continue',
     'Exit': 'Exit',
     "Cancel": "Cancel",
+    "exit_tour_2":
+        "Any data you have entered so far will be lost. You will need to restart the tour.",
+    "incomplete_scanning": "⚠️ Incomplete Scanning",
+    'scanning_status': '@scanned/@total samples scanned @pending remaining',
+    'send_anyway_question': 'Send anyway?',
+    'continue_scanning_button': 'Continue scanning',
+    'send_anyway_button': 'Send anyway',
   },
   'de': {
     'login': 'Anmelden',
@@ -650,5 +657,12 @@ const Map<String, Map<String, String>> appTranslationsData = {
     'exit': 'Beenden',
     "Exit": "Verlassen",
     "Cancel": "Abbrechen",
+    "exit_tour_2":
+        "Ihre bisher erfassten Daten gehen verloren. Die Tour muss erneut gestartet werden.",
+    "incomplete_scanning": "Unvollständiger Scan",
+    'scanning_status': '@scanned/@total Proben gescannt @pending ausstehend',
+    'send_anyway_question': 'Trotzdem senden?',
+    'continue_scanning_button': 'Weiter scannen',
+    'send_anyway_button': 'Trotzdem senden',
   },
 };

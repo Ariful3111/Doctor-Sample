@@ -46,12 +46,15 @@ class DoctorCardWidget extends StatelessWidget {
                       ),
                     ),
                     SizedBox(width: 12.w),
-                    Text(
-                      doctor['name'],
-                      style: TextStyle(
-                        fontSize: 16.sp,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary,
+                    Expanded(
+                      child: Text(
+                        doctor['name'],
+                        style: TextStyle(
+                          fontSize: 16.sp,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textPrimary,
+                        ),
+                        softWrap: true,
                       ),
                     ),
                   ],

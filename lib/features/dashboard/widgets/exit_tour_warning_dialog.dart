@@ -77,7 +77,7 @@ class ExitTourWarningDialog extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Your progress will be saved as a pending tour.',
+              "exit_tour_2".tr,
               style: TextStyle(fontSize: 14.sp, color: AppColors.textSecondary),
             ),
             SizedBox(height: 12.h),
@@ -101,7 +101,7 @@ class ExitTourWarningDialog extends StatelessWidget {
                       SizedBox(width: 8.w),
                       Expanded(
                         child: Text(
-                          'Completed: $samplesSubmitted',
+                          '${'completed'.tr}: $samplesSubmitted',
                           style: TextStyle(
                             fontSize: 13.sp,
                             fontWeight: FontWeight.w500,
@@ -118,7 +118,7 @@ class ExitTourWarningDialog extends StatelessWidget {
                       SizedBox(width: 8.w),
                       Expanded(
                         child: Text(
-                          'Pending: $pendingScans',
+                          '${'pending'.tr}: $pendingScans',
                           style: TextStyle(
                             fontSize: 13.sp,
                             fontWeight: FontWeight.w500,
@@ -137,10 +137,7 @@ class ExitTourWarningDialog extends StatelessWidget {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: Text(
-            'continue'.tr,
-            style: TextStyle(color: AppColors.primary),
-          ),
+          child: Text('Cancel'.tr, style: TextStyle(color: AppColors.primary)),
         ),
         TextButton(
           onPressed: () {
@@ -148,7 +145,7 @@ class ExitTourWarningDialog extends StatelessWidget {
             onConfirm(); // Then execute callback
           },
           child: Text(
-            'exit'.tr,
+            'Exit'.tr,
             style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
           ),
         ),

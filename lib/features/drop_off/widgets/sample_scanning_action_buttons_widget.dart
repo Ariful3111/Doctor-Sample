@@ -15,7 +15,7 @@ class SampleScanningActionButtonsWidget extends StatelessWidget {
     void handleNext() {
       final missing = controller.totalSamples - controller.scannedCount;
       final pendingSamplesText = controller.totalPendingSamples > 0
-          ? '\n${controller.totalPendingSamples} sample(s) are still pending from backend.'
+          ? '\n${controller.totalPendingSamples} sample(s) are still pending.'
           : '';
 
       if (missing > 0) {
@@ -25,15 +25,14 @@ class SampleScanningActionButtonsWidget extends StatelessWidget {
             context: context,
             barrierDismissible: false,
             builder: (dialogContext) => AlertDialog(
-              title: const Text('⚠️ Incomplete Scanning'),
+              title: Text('incomplete_scanning'.tr),
               content: Text(
-                'You have scanned ${controller.scannedCount} out of ${controller.totalSamples} samples.$pendingSamplesText\n\n'
-                'Do you want to submit anyway?',
+                '${'scanning_status'.trParams({'scanned': controller.scannedCount.toString(), 'total': controller.totalSamples.toString(), 'pending': (controller.totalSamples - controller.scannedCount).toString()})}\n${'send_anyway_question'.tr}',
               ),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(dialogContext).pop(),
-                  child: const Text('No, Continue Scanning'),
+                  child: Text('continue_scanning_button'.tr),
                 ),
                 ElevatedButton(
                   onPressed: () {
@@ -54,7 +53,7 @@ class SampleScanningActionButtonsWidget extends StatelessWidget {
                       );
                     });
                   },
-                  child: const Text('Yes, Submit'),
+                  child: Text('send_anyway_button'.tr),
                 ),
               ],
             ),
