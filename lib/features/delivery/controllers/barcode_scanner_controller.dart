@@ -23,6 +23,7 @@ class BarcodeScannerController extends GetxController {
 
   // UI state
   final RxBool isProcessing = false.obs;
+  final RxBool isCameraActive = true.obs;
   bool _dialogOpen = false;
   String _lastHandledBarcode = '';
   DateTime? _lastHandledAt;
@@ -51,8 +52,19 @@ class BarcodeScannerController extends GetxController {
 
   @override
   void onClose() {
+    isCameraActive.value = false;
     stopScanning();
     super.onClose();
+  }
+
+  void pauseCamera() {
+    isCameraActive.value = false;
+  }
+
+  void resumeCamera() {
+    if (!isProcessing.value) {
+      isCameraActive.value = true;
+    }
   }
 
   /// Initialize scanner with mock data
@@ -382,7 +394,8 @@ class BarcodeScannerController extends GetxController {
       print(
         'Navigating to pickup confirmation with doctorId: [32m${doctorId.value}[0m',
       );
-      Get.toNamed(
+      pauseCamera();
+      await Get.toNamed(
         AppRoutes.pickupConfirmation,
         arguments: {
           'doctorId': doctorId.value,
@@ -395,6 +408,7 @@ class BarcodeScannerController extends GetxController {
           'extraPickupId': extraPickupId, // Pass extra pickup ID
         },
       );
+      resumeCamera();
     }
   }
 

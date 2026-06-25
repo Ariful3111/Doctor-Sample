@@ -35,23 +35,23 @@ class SampleScanningActionButtonsWidget extends StatelessWidget {
                   child: Text('continue_scanning_button'.tr),
                 ),
                 ElevatedButton(
-                  onPressed: () {
+                  onPressed: () async {
                     Navigator.of(dialogContext).pop();
-                    WidgetsBinding.instance.addPostFrameCallback((_) {
-                      Get.toNamed(
-                        AppRoutes.dropConfirmation,
-                        arguments: {
-                          'scannedCount': controller.scannedCount,
-                          'totalSamples': controller.totalSamples,
-                          'scannedSampleIds': controller.scannedSamples,
-                          'dropLocationName': controller.dropLocationName,
-                          'dropLocationId': controller.dropLocationId,
-                          'dropLocationQRCode': controller.dropLocationQRCode,
-                          'selectedDate': controller.selectedDate,
-                          'tourId': controller.tourId,
-                        },
-                      );
-                    });
+                    controller.pauseCamera();
+                    await Get.toNamed(
+                      AppRoutes.dropConfirmation,
+                      arguments: {
+                        'scannedCount': controller.scannedCount,
+                        'totalSamples': controller.totalSamples,
+                        'scannedSampleIds': controller.scannedSamples,
+                        'dropLocationName': controller.dropLocationName,
+                        'dropLocationId': controller.dropLocationId,
+                        'dropLocationQRCode': controller.dropLocationQRCode,
+                        'selectedDate': controller.selectedDate,
+                        'tourId': controller.tourId,
+                      },
+                    );
+                    controller.resumeCamera();
                   },
                   child: Text('send_anyway_button'.tr),
                 ),
@@ -60,6 +60,7 @@ class SampleScanningActionButtonsWidget extends StatelessWidget {
           );
         });
       } else {
+        controller.pauseCamera();
         Get.toNamed(
           AppRoutes.dropConfirmation,
           arguments: {
@@ -72,7 +73,7 @@ class SampleScanningActionButtonsWidget extends StatelessWidget {
             'selectedDate': controller.selectedDate, // ✅ Pass selected date
             'tourId': controller.tourId, // ✅ Pass tour ID
           },
-        );
+        )?.then((_) => controller.resumeCamera());
       }
     }
 

@@ -23,34 +23,46 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
   late MobileScannerController cameraController;
   bool _hasNavigatedBack = false; // Prevent multiple back navigation
   bool _isShowingInvalidQrDialog = false;
-  bool _isDropLocationMode = false;
   bool _isLoading = false;
   late Worker _processingWorker;
+  late Worker _cameraActiveWorker;
 
   @override
   void initState() {
     super.initState();
-    _isDropLocationMode = Get.arguments?['isDropLocation'] == true;
     cameraController = MobileScannerController();
     final controller = Get.find<BarcodeScannerController>();
     _processingWorker = ever<bool>(controller.isProcessing, (processing) async {
-      if (!mounted) return;
-      if (_isDropLocationMode) return;
-      try {
-        if (processing) {
-          await cameraController.stop();
-        } else {
-          await cameraController.start();
-        }
-      } catch (_) {}
+      await _syncCamera();
+    });
+    _cameraActiveWorker = ever<bool>(controller.isCameraActive, (_) async {
+      await _syncCamera();
     });
   }
 
   @override
   void dispose() {
     _processingWorker.dispose();
+    _cameraActiveWorker.dispose();
+    try {
+      cameraController.stop();
+    } catch (_) {}
     cameraController.dispose();
     super.dispose();
+  }
+
+  Future<void> _syncCamera() async {
+    if (!mounted) return;
+    final controller = Get.find<BarcodeScannerController>();
+    final shouldRun =
+        controller.isCameraActive.value && !controller.isProcessing.value;
+    try {
+      if (shouldRun) {
+        await cameraController.start();
+      } else {
+        await cameraController.stop();
+      }
+    } catch (_) {}
   }
 
   @override
@@ -95,8 +107,10 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
                   return Stack(
                     children: [
                       IconButton(
-                        onPressed: () {
-                          Get.toNamed(AppRoutes.notifications);
+                        onPressed: () async {
+                          controller.pauseCamera();
+                          await Get.toNamed(AppRoutes.notifications);
+                          controller.resumeCamera();
                         },
                         icon: Icon(
                           Icons.notifications_outlined,
@@ -174,6 +188,7 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
                           controller: cameraController,
                           scanWindow: scanWindow,
                           onDetect: (capture) {
+                            if (!controller.isCameraActive.value) return;
                             if (controller.isProcessing.value) return;
                             if (isDropLocation && _isShowingInvalidQrDialog) {
                               return;

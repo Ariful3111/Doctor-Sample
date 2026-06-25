@@ -23,6 +23,7 @@ class SampleScanningController extends GetxController {
   final _scannedCount = 0.obs;
   final _totalSamples = _defaultTotalSamples.obs;
   final _isScanning = false.obs;
+  final _isCameraActive = true.obs;
   final _scannedSamples = <String>[].obs;
   final _pendingBarcode =
       Rxn<String>(); // Store detected barcode waiting for confirmation
@@ -46,11 +47,13 @@ class SampleScanningController extends GetxController {
   RxInt get scannedCount$ => _scannedCount;
   RxInt get totalSamples$ => _totalSamples;
   RxBool get isScanning$ => _isScanning;
+  RxBool get isCameraActive$ => _isCameraActive;
   RxList<String> get scannedSamples$ => _scannedSamples;
 
   int get scannedCount => _scannedCount.value;
   int get totalSamples => _totalSamples.value;
   bool get isScanning => _isScanning.value;
+  bool get isCameraActive => _isCameraActive.value;
   List<String> get scannedSamples => _scannedSamples.toList();
 
   // Computed properties
@@ -117,6 +120,16 @@ class SampleScanningController extends GetxController {
         _simulateScanResult();
       }
     });
+  }
+
+  void pauseCamera() {
+    _isCameraActive.value = false;
+  }
+
+  void resumeCamera() {
+    if (!_isScanning.value) {
+      _isCameraActive.value = true;
+    }
   }
 
   /// Handle barcode detected from real scanner
@@ -385,6 +398,7 @@ class SampleScanningController extends GetxController {
         );
 
         // Navigate to drop confirmation screen
+        pauseCamera();
         Get.toNamed(
           AppRoutes.dropConfirmation,
           arguments: {
@@ -397,7 +411,7 @@ class SampleScanningController extends GetxController {
             'selectedDate': selectedDate,
             'tourId': tourId, // ✅ Pass tour ID to confirmation screen
           },
-        );
+        )?.then((_) => resumeCamera());
       }
     } catch (e) {
       SnackbarUtils.showError(
@@ -627,6 +641,7 @@ class SampleScanningController extends GetxController {
   @override
   void onClose() {
     // Clean up resources
+    _isCameraActive.value = false;
     _isScanning.value = false;
     super.onClose();
   }

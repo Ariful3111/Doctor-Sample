@@ -15,6 +15,7 @@ class SampleScanningCameraWidget extends StatefulWidget {
 class _SampleScanningCameraWidgetState extends State<SampleScanningCameraWidget>
     with WidgetsBindingObserver {
   late final MobileScannerController _cameraController;
+  late final Worker _cameraActiveWorker;
 
   @override
   void initState() {
@@ -23,12 +24,22 @@ class _SampleScanningCameraWidgetState extends State<SampleScanningCameraWidget>
     _cameraController = MobileScannerController(
       detectionSpeed: DetectionSpeed.normal,
     );
+    final controller = Get.find<SampleScanningController>();
+    _cameraActiveWorker = ever<bool>(controller.isCameraActive$, (_) {
+      if (controller.isCameraActive) {
+        _safeStart();
+      } else {
+        _safeStop();
+      }
+    });
     _safeStart();
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _cameraActiveWorker.dispose();
+    _safeStop();
     _cameraController.dispose();
     super.dispose();
   }
@@ -44,6 +55,9 @@ class _SampleScanningCameraWidgetState extends State<SampleScanningCameraWidget>
   }
 
   void _safeStart() {
+    if (!mounted) return;
+    final controller = Get.find<SampleScanningController>();
+    if (!controller.isCameraActive) return;
     try {
       _cameraController.start();
     } catch (_) {}
@@ -87,6 +101,7 @@ class _SampleScanningCameraWidgetState extends State<SampleScanningCameraWidget>
                   controller: _cameraController,
                   scanWindow: scanWindow,
                   onDetect: (capture) {
+                    if (!controller.isCameraActive) return;
                     final List<Barcode> barcodes = capture.barcodes;
                     for (final barcode in barcodes) {
                       final value = barcode.rawValue;
