@@ -9,6 +9,7 @@ import '../repositories/extra_pickup_repository.dart';
 import 'package:doctor_app/shared/extensions/date_extensions.dart';
 import 'notifications_controller.dart';
 import '../widgets/tour_start_confirmation_dialog.dart';
+import '../utils/schedule_date_resolver.dart';
 
 class TodaysTaskController extends GetxController {
   final GetTourRepository getTourRepository;
@@ -96,10 +97,21 @@ class TodaysTaskController extends GetxController {
         _isLoading.value = false;
         return;
       }
-      if (dateTime != null) {
-        _selectedDate.value = dateTime;
-      }
-      final String date = _selectedDate.value.toApiDate();
+
+      final tourStateService = Get.find<TourStateService>();
+      final effectiveDate = resolveScheduleDate(
+        hasActiveTour: tourStateService.hasActiveTour,
+        tourStartDate: tourStateService.tourStartDate.value,
+        requestedDate: dateTime,
+        now: DateTime.now(),
+      );
+      _selectedDate.value = effectiveDate;
+
+      final String date = effectiveDate.toApiDate();
+      print(
+        '📅 Schedule date source: '
+        '${tourStateService.hasActiveTour ? 'active tour start date' : 'current/requested date'}',
+      );
       print('🗓️ Fetching tours for driver $driverId, date: $date');
 
       final response = await getTourRepository.execute(
