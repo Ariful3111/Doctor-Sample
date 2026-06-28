@@ -80,8 +80,8 @@ class PickupConfirmationController extends GetxController {
         print('Step 1: startReport API SUCCESS');
         // Show success message
         SnackbarUtils.showSuccess(
-          title: 'Report Submitted',
-          message: 'Doctor samples submitted successfully',
+          title: 'report_submitted'.tr,
+          message: 'report_submitted_success'.tr,
         );
       } else {
         print('Step 1: startReport API FAILED');

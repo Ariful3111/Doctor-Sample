@@ -27,6 +27,9 @@ const Map<String, Map<String, String>> appTranslationsData = {
     'pending_pickups_found': '@count pending pickup(s) available',
     'pickup_accepted_successfully': 'Pickup Accepted Successfully',
     'pickup_rejected_successfully': 'Pickup Rejected Successfully',
+    'tour_updated': 'Tour Updated',
+    'new_doctors_added_to_tour':
+        'New doctors added to your tour. Check tour list!',
     'driver_id_not_found': 'Driver ID Not Found',
     'just_now': 'Just Now',
     'minutes_ago': '@n minutes ago',
@@ -355,6 +358,9 @@ const Map<String, Map<String, String>> appTranslationsData = {
     'pending_pickups_found': '@count offene Abholung(en) verfügbar',
     'pickup_accepted_successfully': 'Abholung erfolgreich angenommen',
     'pickup_rejected_successfully': 'Abholung erfolgreich abgelehnt',
+    'tour_updated': 'Tour aktualisiert',
+    'new_doctors_added_to_tour':
+        'Deiner Tour wurden neue Ärzte hinzugefügt. Überprüfe die Tourliste!',
     'driver_id_not_found': 'Fahrer-ID nicht gefunden',
     'just_now': 'Gerade eben',
     'minutes_ago': 'Vor @n Min.',
@@ -496,7 +502,7 @@ const Map<String, Map<String, String>> appTranslationsData = {
     'all_samples_accounted_message': 'Alle Proben wurden erfasst.',
     'missing_samples_warning': 'Warnung: Die folgenden Proben-IDs fehlen: @ids',
     'scanned_count_info': 'Gescannt: @scanned von @total',
-    'report_submitted': 'Meldung eingereicht',
+    'report_submitted': 'Bericht übermittelt',
     'report_submitted_success': 'Ihre Meldung wurde erfolgreich eingereicht',
     'instructions': 'Anweisungen',
     'qr_scanner': 'Barcode',

@@ -246,8 +246,8 @@ class NotificationsController extends GetxController {
               final tourService = Get.find<TourStateService>();
               if (tourService.hasActiveTour) {
                 SnackbarUtils.showInfo(
-                  title: 'Tour Updated',
-                  message: 'New doctors added to your tour. Check tour list!',
+                  title: 'tour_updated'.tr,
+                  message: 'new_doctors_added_to_tour'.tr,
                   duration: const Duration(seconds: 3),
                 );
               }
