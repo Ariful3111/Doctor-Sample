@@ -24,6 +24,9 @@ const Map<String, Map<String, String>> appTranslationsData = {
     'quick_delivery': 'Quick Delivery',
     'quick_delivery_request': 'Quick Delivery Request',
     'no_pending_notifications': 'No Pending Notifications',
+    'new_extra_pickup': 'New Extra Pickup',
+    'new_extra_pickup_message':
+        'A new extra pickup has been assigned. Please check notifications.',
     'pending_pickups_found': '@count pending pickup(s) available',
     'pickup_accepted_successfully': 'Pickup Accepted Successfully',
     'pickup_rejected_successfully': 'Pickup Rejected Successfully',
@@ -355,6 +358,9 @@ const Map<String, Map<String, String>> appTranslationsData = {
     'quick_delivery': 'Schnelle Lieferung',
     'quick_delivery_request': 'Zusätzliche Abholung',
     'no_pending_notifications': 'Keine ausstehenden Benachrichtigungen',
+    'new_extra_pickup': 'Neue zusätzliche Abholung',
+    'new_extra_pickup_message':
+        'Eine neue zusätzliche Abholung wurde zugewiesen.\nBitte überprüfen Sie Ihre Benachrichtigungen.',
     'pending_pickups_found': '@count offene Abholung(en) verfügbar',
     'pickup_accepted_successfully': 'Abholung erfolgreich angenommen',
     'pickup_rejected_successfully': 'Abholung erfolgreich abgelehnt',

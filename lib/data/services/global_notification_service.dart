@@ -65,9 +65,8 @@ class GlobalNotificationService extends GetxService {
 
       // Show notification immediately
       SnackbarUtils.showSuccess(
-        title: 'New Extra Pickup',
-        message:
-            'A new extra pickup has been assigned. Please check notifications.',
+        title: 'new_extra_pickup'.tr,
+        message: 'new_extra_pickup_message'.tr,
       );
 
       // Update notifications list immediately
